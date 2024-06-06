@@ -131,6 +131,7 @@ void Crypto_TM_Check_For_Secondary_Header(uint8_t* pTfBuffer, uint16_t* idx)
 int32_t Crypto_TM_IV_Sanity_Check(uint8_t* sa_service_type, SecurityAssociation_t* sa_ptr)
 {
     int32_t status = CRYPTO_LIB_SUCCESS;
+    int32_t ret_status = CRYPTO_FALSE;
     #ifdef SA_DEBUG
     if (sa_ptr->shivf_len > 0)
     {
@@ -151,14 +152,14 @@ int32_t Crypto_TM_IV_Sanity_Check(uint8_t* sa_service_type, SecurityAssociation_
     if(*sa_service_type != SA_PLAINTEXT && sa_ptr->ecs_len == 0 && sa_ptr->acs_len ==0)
     {
         status = CRYPTO_LIB_ERR_NULL_CIPHERS;
+        ret_status = CRYPTO_TRUE;
 #ifdef TM_DEBUG
         printf(KRED "CRYPTO_LIB_ERR_NULL_CIPHERS, Invalid cipher lengths, %d\n" RESET, CRYPTO_LIB_ERR_NULL_CIPHERS);
 #endif
         mc_if->mc_log(status);
-        return status;
     }
 
-    if(sa_ptr->est == 0 && sa_ptr->ast == 1)
+    if(sa_ptr->est == 0 && sa_ptr->ast == 1 && ret_status != CRYPTO_TRUE)
     {
         if(sa_ptr->acs_len != 0)
         {
@@ -650,6 +651,7 @@ void Crypto_TM_ApplySecurity_Debug_Print(uint16_t idx, uint16_t pdu_len, Securit
 int32_t Crypto_TM_ApplySecurity(uint8_t* pTfBuffer)
 {
     int32_t status = CRYPTO_LIB_SUCCESS;
+    int32_t ret_status = CRYPTO_FALSE;
     int mac_loc = 0;
     uint8_t aad[1786];
     uint16_t aad_len = 0;
@@ -669,7 +671,7 @@ int32_t Crypto_TM_ApplySecurity(uint8_t* pTfBuffer)
     status = Crypto_TM_Sanity_Check(pTfBuffer);
     if(status != CRYPTO_LIB_SUCCESS)
     {
-        return status;
+        ret_status = CRYPTO_TRUE;
     }
 
     tfvn = ((uint8_t)pTfBuffer[0] & 0xC0) >> 6;
@@ -691,28 +693,34 @@ int32_t Crypto_TM_ApplySecurity(uint8_t* pTfBuffer)
     printf("\n");
 #endif
 
-    status = sa_if->sa_get_operational_sa_from_gvcid(tfvn, scid, vcid, 0, &sa_ptr);
-
-    // No operational/valid SA found
-    if (status != CRYPTO_LIB_SUCCESS)
+    if (ret_status != CRYPTO_TRUE)
     {
-#ifdef TM_DEBUG
-        printf(KRED "Error: Could not retrieve an SA!\n" RESET);
-#endif
-        mc_if->mc_log(status);
-        return status;
+        status = sa_if->sa_get_operational_sa_from_gvcid(tfvn, scid, vcid, 0, &sa_ptr);
+
+        // No operational/valid SA found
+        if (status != CRYPTO_LIB_SUCCESS)
+        {
+    #ifdef TM_DEBUG
+            printf(KRED "Error: Could not retrieve an SA!\n" RESET);
+    #endif
+            mc_if->mc_log(status);
+            ret_status = CRYPTO_TRUE;
+        }
     }
 
-    status = Crypto_Get_Managed_Parameters_For_Gvcid(tfvn, scid, vcid, gvcid_managed_parameters, &current_managed_parameters);
-
-    // No managed parameters found
-    if (status != CRYPTO_LIB_SUCCESS)
+    if (ret_status != CRYPTO_TRUE)
     {
-#ifdef TM_DEBUG
-        printf(KRED "Error: No managed parameters found!\n" RESET);
-#endif
-        mc_if->mc_log(status);
-        return status;
+        status = Crypto_Get_Managed_Parameters_For_Gvcid(tfvn, scid, vcid, gvcid_managed_parameters, &current_managed_parameters);
+
+        // No managed parameters found
+        if (status != CRYPTO_LIB_SUCCESS)
+        {
+    #ifdef TM_DEBUG
+            printf(KRED "Error: No managed parameters found!\n" RESET);
+    #endif
+            mc_if->mc_log(status);
+            ret_status = CRYPTO_TRUE;
+        }
     }
 
  #ifdef TM_DEBUG
@@ -729,9 +737,15 @@ int32_t Crypto_TM_ApplySecurity(uint8_t* pTfBuffer)
     Crypto_saPrint(sa_ptr);
 #endif
 
-    // Determine SA Service Type
-    status = Crypto_TM_Determine_SA_Service_Type(&sa_service_type, sa_ptr);
-    if(status != CRYPTO_LIB_SUCCESS) return status;
+    if (ret_status != CRYPTO_TRUE)
+    {
+        // Determine SA Service Type
+        status = Crypto_TM_Determine_SA_Service_Type(&sa_service_type, sa_ptr);
+        if(status != CRYPTO_LIB_SUCCESS) 
+        {
+            ret_status = CRYPTO_TRUE;
+        }
+    }
 
     // Determine Algorithm cipher & mode. // TODO - Parse authentication_cipher, and handle AEAD cases properly
     if (sa_service_type != SA_PLAINTEXT)
@@ -774,9 +788,15 @@ int32_t Crypto_TM_ApplySecurity(uint8_t* pTfBuffer)
     pTfBuffer[idx + 1] = (sa_ptr->spi & 0x00FF);
     idx += 2;
 
-    // Set initialization vector if specified
-    status = Crypto_TM_IV_Sanity_Check(&sa_service_type, sa_ptr);
-    if(status != CRYPTO_LIB_SUCCESS) return status;
+    if (ret_status != CRYPTO_TRUE)
+    {
+        // Set initialization vector if specified
+        status = Crypto_TM_IV_Sanity_Check(&sa_service_type, sa_ptr);
+        if(status != CRYPTO_LIB_SUCCESS) 
+        {
+            ret_status = CRYPTO_TRUE;
+        }
+    }
 
     // Start index from the transmitted portion
     for (i = sa_ptr->iv_len - sa_ptr->shivf_len; i < sa_ptr->iv_len; i++)
@@ -843,16 +863,23 @@ int32_t Crypto_TM_ApplySecurity(uint8_t* pTfBuffer)
     // Get Key
     crypto_key_t* ekp = NULL;
     crypto_key_t* akp = NULL;
-    status = Crypto_TM_Get_Keys(&ekp, &akp, sa_ptr);
-    if(status != CRYPTO_LIB_SUCCESS)
+
+    if (ret_status != CRYPTO_TRUE)
     {
-        return status;
+        status = Crypto_TM_Get_Keys(&ekp, &akp, sa_ptr);
+        if(status != CRYPTO_LIB_SUCCESS)
+        {
+            ret_status = CRYPTO_TRUE;
+        }
     }
 
-    status = Crypto_TM_Do_Encrypt(sa_service_type, sa_ptr, &aad_len, &mac_loc, &idx, pdu_len, pTfBuffer, aad, ecs_is_aead_algorithm, data_loc, ekp, akp, pkcs_padding, &new_fecf);
-    if(status != CRYPTO_LIB_SUCCESS)
+    if (ret_status != CRYPTO_TRUE)
     {
-        return status;
+        status = Crypto_TM_Do_Encrypt(sa_service_type, sa_ptr, &aad_len, &mac_loc, &idx, pdu_len, pTfBuffer, aad, ecs_is_aead_algorithm, data_loc, ekp, akp, pkcs_padding, &new_fecf);
+        if(status != CRYPTO_LIB_SUCCESS)
+        {
+            ret_status = CRYPTO_TRUE;
+        }
     }
 
     mc_if->mc_log(status);
