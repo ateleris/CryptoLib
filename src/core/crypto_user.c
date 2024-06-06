@@ -121,6 +121,7 @@ int32_t Crypto_User_BadFECF(void)
 int32_t Crypto_User_ModifyKey(void)
 {
     // Local variables
+    int32_t status = CRYPTO_LIB_SUCCESS;
     uint16_t kid = ((uint8_t)sdls_frame.pdu.data[0] << 8) | ((uint8_t)sdls_frame.pdu.data[1]);
     uint8_t mod = (uint8_t)sdls_frame.pdu.data[2];
 
@@ -129,7 +130,7 @@ int32_t Crypto_User_ModifyKey(void)
     ekp = key_if->get_key(kid);
     if (ekp == NULL)
     {
-        return CRYPTO_LIB_ERR_KEY_ID_ERROR;
+        status = CRYPTO_LIB_ERR_KEY_ID_ERROR;
     }
 
     switch (mod)
@@ -147,7 +148,7 @@ int32_t Crypto_User_ModifyKey(void)
         break;
     }
 
-    return CRYPTO_LIB_SUCCESS;
+    return status;
 }
 
 /**
@@ -172,6 +173,7 @@ int32_t Crypto_User_ModifyVCID(void)
     // Check this
     tm_frame_pri_hdr.vcid = (uint8_t)sdls_frame.pdu.data[0];
     SecurityAssociation_t* sa_ptr;
+    int32_t status = CRYPTO_LIB_SUCCESS;
     int i;
     int j;
 
@@ -180,7 +182,7 @@ int32_t Crypto_User_ModifyVCID(void)
         if (sa_if->sa_get_from_spi(i, &sa_ptr) != CRYPTO_LIB_SUCCESS)
         {
             // TODO - Error handling
-            return CRYPTO_LIB_ERROR; // Error -- unable to get SA from SPI.
+            status = CRYPTO_LIB_ERROR; // Error -- unable to get SA from SPI.
         }
         for (j = 0; j < NUM_SA; j++)
         {
@@ -199,5 +201,5 @@ int32_t Crypto_User_ModifyVCID(void)
         }
     }
 
-    return CRYPTO_LIB_SUCCESS;
+    return status;
 }
