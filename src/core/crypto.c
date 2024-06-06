@@ -100,20 +100,24 @@ uint8_t Crypto_Is_AEAD_Algorithm(uint32_t cipher_suite_id)
     // CryptoLib only supports AES-GCM, which is an AEAD (Authenticated Encryption with Associated Data) algorithm, so
     // return true/1.
     // TODO - Add cipher suite mapping to which algorithms are AEAD and which are not.
+    int status = CRYPTO_LIB_ERROR;
+
     if ((cipher_suite_id == CRYPTO_CIPHER_AES256_GCM) || (cipher_suite_id == CRYPTO_CIPHER_AES256_CBC_MAC))
     {
 #ifdef DEBUG
         printf(KYEL "CRYPTO IS AEAD? : TRUE\n" RESET);
 #endif
-        return CRYPTO_TRUE;
+        status = CRYPTO_TRUE;
     }
     else
     {
 #ifdef DEBUG
         printf(KYEL "CRYPTO IS AEAD? : FALSE\n" RESET);
 #endif
-        return CRYPTO_FALSE;
+        status = CRYPTO_FALSE;
     }
+
+    return status;
 }
 
 // TODO - Review this. Not sure it quite works how we think
@@ -163,21 +167,24 @@ int32_t Crypto_window(uint8_t* actual, uint8_t* expected, int length, int window
     uint8_t temp[length];
     int i;
     int j;
+    int ret_status = CRYPTO_FALSE;
 
     // Check Null Pointers
     if (actual == NULL)
     {
 #ifdef DEBUG
-        printf("Crypto_Window expected ptr is NULL\n");
+        printf("Crypto_Window actual ptr is NULL\n");
 #endif
-        return status;
+        status = CRYPTO_LIB_ERROR;
+        ret_status = CRYPTO_TRUE;
     }
     if (expected == NULL)
     {
 #ifdef DEBUG
         printf("Crypto_Window expected ptr is NULL\n");
 #endif
-        return status;
+        status = CRYPTO_LIB_ERROR;
+        ret_status = CRYPTO_TRUE;
     }
     // Check for special case where received value is all 0's and expected is all 0's (won't have -1 in sa!)
     // Received ARSN is: 00000000, SA ARSN is: 00000000
@@ -189,10 +196,9 @@ int32_t Crypto_window(uint8_t* actual, uint8_t* expected, int length, int window
             zero_case = CRYPTO_FALSE;
         }
     }
-    if (zero_case == CRYPTO_TRUE)
+    if ((zero_case == CRYPTO_TRUE) && (ret_status != CRYPTO_TRUE))
     {
         status = CRYPTO_LIB_SUCCESS;
-        return status;
     }
 
     memcpy(temp, expected, length);
@@ -215,7 +221,7 @@ int32_t Crypto_window(uint8_t* actual, uint8_t* expected, int length, int window
                 result++;
             }
         }
-        if (result == length)
+        if ((result == length) && (ret_status != CRYPTO_TRUE))
         {
             status = CRYPTO_LIB_SUCCESS;
             break;
@@ -264,38 +270,37 @@ int32_t Crypto_compare_less_equal(uint8_t* actual, uint8_t* expected, int length
 uint8_t Crypto_Prep_Reply(uint8_t* ingest, uint8_t appID)
 {
     uint8_t count = 0;
-    if (ingest == NULL)
-        return count;
+    if (ingest != NULL)
+    {
+        // Prepare CCSDS for reply
+        sdls_frame.hdr.pvn = 0;
+        sdls_frame.hdr.type = 0;
+        sdls_frame.hdr.shdr = 1;
+        sdls_frame.hdr.appID = appID;
 
-    // Prepare CCSDS for reply
-    sdls_frame.hdr.pvn = 0;
-    sdls_frame.hdr.type = 0;
-    sdls_frame.hdr.shdr = 1;
-    sdls_frame.hdr.appID = appID;
+        sdls_frame.pdu.type = 1;
 
-    sdls_frame.pdu.type = 1;
+        // Fill ingest with reply header
+        ingest[count++] = (sdls_frame.hdr.pvn << 5) | (sdls_frame.hdr.type << 4) | (sdls_frame.hdr.shdr << 3) |
+                        ((sdls_frame.hdr.appID & 0x700 >> 8));
+        ingest[count++] = (sdls_frame.hdr.appID & 0x00FF);
+        ingest[count++] = (sdls_frame.hdr.seq << 6) | ((sdls_frame.hdr.pktid & 0x3F00) >> 8);
+        ingest[count++] = (sdls_frame.hdr.pktid & 0x00FF);
+        ingest[count++] = (sdls_frame.hdr.pkt_length & 0xFF00) >> 8;
+        ingest[count++] = (sdls_frame.hdr.pkt_length & 0x00FF);
 
-    // Fill ingest with reply header
-    ingest[count++] = (sdls_frame.hdr.pvn << 5) | (sdls_frame.hdr.type << 4) | (sdls_frame.hdr.shdr << 3) |
-                      ((sdls_frame.hdr.appID & 0x700 >> 8));
-    ingest[count++] = (sdls_frame.hdr.appID & 0x00FF);
-    ingest[count++] = (sdls_frame.hdr.seq << 6) | ((sdls_frame.hdr.pktid & 0x3F00) >> 8);
-    ingest[count++] = (sdls_frame.hdr.pktid & 0x00FF);
-    ingest[count++] = (sdls_frame.hdr.pkt_length & 0xFF00) >> 8;
-    ingest[count++] = (sdls_frame.hdr.pkt_length & 0x00FF);
+        // Fill ingest with PUS
+        // ingest[count++] = (sdls_frame.pus.shf << 7) | (sdls_frame.pus.pusv << 4) | (sdls_frame.pus.ack);
+        // ingest[count++] = (sdls_frame.pus.st);
+        // ingest[count++] = (sdls_frame.pus.sst);
+        // ingest[count++] = (sdls_frame.pus.sid << 4) | (sdls_frame.pus.spare);
 
-    // Fill ingest with PUS
-    // ingest[count++] = (sdls_frame.pus.shf << 7) | (sdls_frame.pus.pusv << 4) | (sdls_frame.pus.ack);
-    // ingest[count++] = (sdls_frame.pus.st);
-    // ingest[count++] = (sdls_frame.pus.sst);
-    // ingest[count++] = (sdls_frame.pus.sid << 4) | (sdls_frame.pus.spare);
-
-    // Fill ingest with Tag and Length
-    ingest[count++] =
-        (sdls_frame.pdu.type << 7) | (sdls_frame.pdu.uf << 6) | (sdls_frame.pdu.sg << 4) | (sdls_frame.pdu.pid);
-    ingest[count++] = (sdls_frame.pdu.pdu_len & 0xFF00) >> 8;
-    ingest[count++] = (sdls_frame.pdu.pdu_len & 0x00FF);
-
+        // Fill ingest with Tag and Length
+        ingest[count++] =
+            (sdls_frame.pdu.type << 7) | (sdls_frame.pdu.uf << 6) | (sdls_frame.pdu.sg << 4) | (sdls_frame.pdu.pid);
+        ingest[count++] = (sdls_frame.pdu.pdu_len & 0xFF00) >> 8;
+        ingest[count++] = (sdls_frame.pdu.pdu_len & 0x00FF);
+    }
     return count;
 }
 
@@ -706,11 +711,10 @@ int32_t Crypto_Get_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uin
         {
             *managed_parameters_out = managed_parameters_in;
             status = CRYPTO_LIB_SUCCESS;
-            return status;
         }
         else
         {
-            return Crypto_Get_Managed_Parameters_For_Gvcid(tfvn, scid, vcid, managed_parameters_in->next,
+            status = Crypto_Get_Managed_Parameters_For_Gvcid(tfvn, scid, vcid, managed_parameters_in->next,
                                                            managed_parameters_out);
         }
     }
@@ -718,8 +722,8 @@ int32_t Crypto_Get_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uin
     {
         printf(KRED "Error: Managed Parameters for GVCID(TFVN: %d, SCID: %d, VCID: %d) not found. \n" RESET, tfvn, scid,
                vcid);
-        return status;
     }
+    return status;
 }
 
 /**
@@ -843,20 +847,21 @@ int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t* tc_sdls_processed_frame, uin
 int32_t Crypto_Check_Anti_Replay_Verify_Pointers(SecurityAssociation_t* sa_ptr, uint8_t* arsn, uint8_t* iv)
 {
     int32_t status = CRYPTO_LIB_SUCCESS;
+    int32_t ret_status = CRYPTO_FALSE;
     if (sa_ptr == NULL) // #177 - Modification made per suggestion of 'Spicydll' - prevents null dereference
     {
         status = CRYPTO_LIB_ERR_NULL_SA;
-        return status;
+        ret_status = CRYPTO_TRUE;
     }
-    if (arsn == NULL && sa_ptr->arsn_len > 0)
+    if (arsn == NULL && sa_ptr->arsn_len > 0 && ret_status != CRYPTO_TRUE)
     {
         status = CRYPTO_LIB_ERR_NULL_ARSN;
-        return status;
+        ret_status = CRYPTO_TRUE;
     }
-    if (iv == NULL && sa_ptr->shivf_len > 0 && crypto_config.cryptography_type != CRYPTOGRAPHY_TYPE_KMCCRYPTO)
+    if (iv == NULL && sa_ptr->shivf_len > 0 && crypto_config.cryptography_type != CRYPTOGRAPHY_TYPE_KMCCRYPTO && ret_status != CRYPTO_TRUE)
     {
         status = CRYPTO_LIB_ERR_NULL_IV;
-        return status;
+        ret_status = CRYPTO_TRUE;
     }
     return status;
 }
@@ -891,7 +896,7 @@ int32_t Crypto_Check_Anti_Replay_ARSNW(SecurityAssociation_t* sa_ptr, uint8_t* a
 #endif
         if (status != CRYPTO_LIB_SUCCESS)
         {
-            return CRYPTO_LIB_ERR_ARSN_OUTSIDE_WINDOW;
+            status = CRYPTO_LIB_ERR_ARSN_OUTSIDE_WINDOW;
         }
         // Valid ARSN received, increment stored value
         else
@@ -941,7 +946,7 @@ int32_t Crypto_Check_Anti_Replay_GCM(SecurityAssociation_t* sa_ptr, uint8_t* iv,
 #endif
         if (status != CRYPTO_LIB_SUCCESS)
         {
-            return CRYPTO_LIB_ERR_IV_OUTSIDE_WINDOW;
+            status = CRYPTO_LIB_ERR_IV_OUTSIDE_WINDOW;
         }
         // Valid IV received, increment stored value
         else
@@ -1079,19 +1084,23 @@ int32_t Crypto_Get_Security_Header_Length(SecurityAssociation_t* sa_ptr)
     Crypto_Get_Managed_Parameters_For_Gvcid(tfvn, scid, vcid,
                                             gvcid_managed_parameters, temp_current_managed_parameters);
     */
-
+    int32_t status = CRYPTO_LIB_SUCCESS;
+    int32_t ret_status = CRYPTO_FALSE;
     if (!sa_ptr) 
     { 
 #ifdef DEBUG
         printf(KRED "Get_Security_Header_Length passed Null SA!\n" RESET);
 #endif
-        return CRYPTO_LIB_ERR_NULL_SA;
+        status = CRYPTO_LIB_ERR_NULL_SA;
+        ret_status = CRYPTO_TRUE;
     }
-    uint16_t securityHeaderLength = 2; // Start with SPI
-
-    securityHeaderLength += sa_ptr->shivf_len + sa_ptr->shsnf_len + sa_ptr->shplf_len;
-
-    return securityHeaderLength;
+    if (ret_status != CRYPTO_TRUE)
+    {
+        uint16_t securityHeaderLength = 2; // Start with SPI
+        securityHeaderLength += sa_ptr->shivf_len + sa_ptr->shsnf_len + sa_ptr->shplf_len;
+        status = securityHeaderLength;
+    }
+    return status;
 }
 
 /**
@@ -1101,17 +1110,22 @@ int32_t Crypto_Get_Security_Header_Length(SecurityAssociation_t* sa_ptr)
 **/
 int32_t Crypto_Get_Security_Trailer_Length(SecurityAssociation_t* sa_ptr)
 {
+    int32_t status = CRYPTO_LIB_SUCCESS;
+    int32_t ret_status = CRYPTO_FALSE;
     if (!sa_ptr) 
     { 
 #ifdef DEBUG
         printf(KRED "Get_Trailer_Trailer_Length passed Null SA!\n" RESET);
 #endif
-        return CRYPTO_LIB_ERR_NULL_SA;
+        status = CRYPTO_LIB_ERR_NULL_SA;
+        ret_status = CRYPTO_TRUE;
     }
-    uint16_t securityTrailerLength = 0;
-
-    securityTrailerLength = sa_ptr->stmacf_len;
-
-    return securityTrailerLength;
-
+    if (ret_status != CRYPTO_TRUE)
+    {
+        
+        uint16_t securityTrailerLength = 0;
+        securityTrailerLength = sa_ptr->stmacf_len;
+        status = securityTrailerLength;
+    }
+    return status;
 }
