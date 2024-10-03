@@ -24,7 +24,6 @@
 */
 #include "crypto_print.h"
 #include "crypto_structs.h"
-#include "crypto_config.h"
 
 /**
  * @brief Function: Crypto_tcPrint

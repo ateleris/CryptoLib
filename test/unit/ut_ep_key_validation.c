@@ -472,7 +472,7 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
     // Let's compare everything. All three should match
     for (int i = 0; i < reply_length; i++)
     {
-        printf(" %02X \t %02X\n", buffer_TRUTH_RESPONSE_b[i], sdls_ep_reply_local[i]);
+        // printf(" %02X \t %02X\n", buffer_TRUTH_RESPONSE_b[i], sdls_e/p_reply_local[i]);
         ASSERT_EQ(buffer_TRUTH_RESPONSE_b[i], sdls_ep_reply_local[i]);
         // ASSERT_EQ(buffer_TRUTH_RESPONSE_h[i], sdls_ep_reply[i]);
     }

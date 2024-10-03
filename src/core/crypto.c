@@ -332,7 +332,6 @@ uint16_t Crypto_Get_Sdls_Ep_Reply(uint8_t* buffer, uint16_t* length)
     // Update length externally
     *length = pkt_length;
 
-
     return status;
 }
 
@@ -467,8 +466,6 @@ int32_t Crypto_PDU(uint8_t* ingest, TC_t* tc_frame)
     int32_t status = CRYPTO_LIB_SUCCESS;
     int count = 0;
     int* count_ptr = &count;
-
-    printf("In Crypto PDU\n");
 
     switch (sdls_resp_pkt.hdr.type)
     {
@@ -813,7 +810,7 @@ int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t* tc_sdls_processed_frame, uin
         // Crypto Lib Application ID
         {
 #ifdef DEBUG
-            printf(KGRN "Received SDLS command: " RESET);
+            printf(KGRN "Received SDLS command. \n" RESET);
 #endif
             // CCSDS Header
             sdls_resp_pkt.hdr.pvn = (tc_sdls_processed_frame->tc_pdu[0] & 0xE0) >> 5;

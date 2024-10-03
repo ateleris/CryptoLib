@@ -211,7 +211,7 @@ int32_t Crypto_Check_Anti_Replay_GCM(SecurityAssociation_t* sa_ptr, uint8_t* iv,
 
 // SDLS EP Related Functions
 extern uint8_t Crypto_Prep_Reply(uint8_t* ingest, uint8_t appID);
-extern void Crypto_Print_Sdls_Ep_Reply();
+extern void Crypto_Print_Sdls_Ep_Reply(void);
 extern uint16_t Crypto_Get_Sdls_Ep_Reply(uint8_t* buffer, uint16_t* length);
 
 // Key Management Functions

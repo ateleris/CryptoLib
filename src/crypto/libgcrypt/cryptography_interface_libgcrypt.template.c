@@ -584,9 +584,8 @@ int32_t cryptography_gcry_setup(int32_t mode, int32_t algo, gcry_cipher_hd_t* tm
     }
     *gcry_error = gcry_cipher_setkey(*tmp_hd, key_ptr, len_key);
 #ifdef SA_DEBUG
-    uint32_t i;
-    printf(KYEL "AEAD MAC: Printing Key:\n\t");
-    for (i = 0; i < len_key; i++)
+    printf(KYEL "GCRY_SETUP: Printing Key:\n\t");
+    for (uint32_t i = 0; i < len_key; i++)
     {
         printf("%02X", *(key_ptr + i));
     }
@@ -601,6 +600,14 @@ int32_t cryptography_gcry_setup(int32_t mode, int32_t algo, gcry_cipher_hd_t* tm
         gcry_cipher_close(*tmp_hd);
         return status;
     }
+#ifdef SA_DEBUG
+    printf(KYEL "GCRY_SETUP: Printing IV:\n\t");
+    for (uint32_t i = 0; i < iv_len; i++)
+    {
+        printf("%02X", *(iv + i));
+    }
+    printf("\n" RESET);
+#endif
     *gcry_error = gcry_cipher_setiv(*tmp_hd, iv, iv_len);
     if ((*gcry_error & GPG_ERR_CODE_MASK) != GPG_ERR_NO_ERROR)
     {
