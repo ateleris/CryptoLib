@@ -24,6 +24,7 @@
 */
 #include "crypto_print.h"
 #include "crypto_structs.h"
+#include "crypto_config.h"
 
 /**
  * @brief Function: Crypto_tcPrint
@@ -312,4 +313,38 @@ void Crypto_mpPrint(GvcidManagedParameters_t* managed_parameters, uint8_t print_
     //     Crypto_mpPrint(managed_parameters->next, print_children);
     // }
 }
+
+void Crypto_Print_Sdls_Ep_Reply()
+{
+    // Length to be pulled from packet header
+    uint16_t pkt_length = 0;
+
+    // Check for Null Inputs
+    if (sdls_ep_reply == NULL)
+    {
+        printf(KRED "The sdls_ep_reply buffer is null... this isn't good as it should be static in memory!\n" RESET);
+        return;
+    }
+
+    pkt_length = (sdls_ep_reply[4] << 8) | sdls_ep_reply[5];
+    
+    // Sanity Check on length
+    if (pkt_length > TC_MAX_FRAME_SIZE)
+    {
+        printf(KRED "Unable to print SDLS Reply... invalid length of %d\n", pkt_length);
+        return;
+    }
+
+    // Do the print
+    printf("SDLS Reply: 0x");
+    for (int i =0; i < pkt_length; i++)
+    {
+        printf("%02X", sdls_ep_reply[i]);
+    }
+    printf("\n\n");
+
+    return;
+}
+
+
 #endif

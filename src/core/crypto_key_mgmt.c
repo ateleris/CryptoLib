@@ -430,6 +430,7 @@ int32_t Crypto_Key_verify(TC_t* tc_frame, int* count)
             sdls_resp_pkt.pdu.data[pdu_data_idx] = *(tc_frame->tc_sec_header.iv + y);
             sdls_ep_keyv_reply.blk[x].iv[y] = *(tc_frame->tc_sec_header.iv + y);
             sdls_ep_reply[pdu_data_idx] = *(tc_frame->tc_sec_header.iv + y);
+            printf(KRED "%02X", *(tc_frame->tc_sec_header.iv + y));
             pdu_data_idx += 1;
             *count += 1;
         }

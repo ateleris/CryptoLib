@@ -389,7 +389,6 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
 
     // NOTE: Added Transfer Frame header to the plaintext
     char* buffer_nist_key_h = "000102030405060708090A0B0C0D0E0F000102030405060708090A0B0C0D0E0F";
-    // Truth PDU                 0880D03A006584005C0000000000000000000000000001D8EAA795AFFAA0E951BB6CF0116192E16B1977D6723E92E01123CCEF548E28857E00000000000000000000000002
     char* buffer_VERIFY_h = "2003003e00ff000000001880d03a002c197f0b00040024008471fc3ad5b1c36ad56bd5a5432315cdab008675c06302465bc6d5091a29957eebed35c00a6ed8";
     //                      |2003003e00| = Primary Header
     //                                |ff| = SPI
@@ -405,9 +404,16 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
     //                                                                        |71fc3ad5b1c36ad56bd5a5432315cdab| = Challenge
     //                                                                                                        |0086| = Key ID (134)
     //                                                                                                            |75c06302465bc6d5091a29957eebed35| = Challenge
-    //                                                                                                                                            |c00a6ed8| = Trailer  
-    uint8_t *buffer_nist_key_b, *buffer_VERIFY_b = NULL;
-    int buffer_nist_key_len, buffer_VERIFY_len = 0;
+    //                                                                                                                                            |c00a6ed8| = Trailer
+    // TRUTH PDU                                                                                                                                        
+    char* buffer_TRUTH_RESPONSE_h = "0880D03A0068197F0B000402E00084000000000000000000000001D8EAA795AFFAA0E951BB6CF0116192E16B1977D6723E92E01123CCEF548E2885008600000000000000000000000275C47F30CA26E64AF30C19EBFFE0B314849133E138AC65BC2806E520A90C96A8";
+    //                         0880D03A0068 = Primary Header
+    //                                    197F0B00 = PUS Header
+    //                                           0402E0 = PDU Tag & Length
+    //                                                0084 000000000000000000000001 D8EAA795AFFAA0E951BB6CF0116192E1 6B1977D6723E92E01123CCEF548E2885 =  #1: KID, IV, CHALLENGE, MAC
+    //                                                0086 000000000000000000000002 75C47F30CA26E64AF30C19EBFFE0B314 849133E138AC65BC2806E520A90C96A8 =  #2: KID, IV, CHALLENGE, MAC
+    uint8_t *buffer_nist_key_b, *buffer_VERIFY_b, *buffer_TRUTH_RESPONSE_b = NULL;
+    int buffer_nist_key_len, buffer_VERIFY_len, buffer_TRUTH_RESPONSE_len = 0;
 
     // Setup Processed Frame For Decryption
     TC_t tc_nist_processed_frame;
@@ -438,12 +444,39 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
     // Convert frames that will be processed
     hex_conversion(buffer_VERIFY_h, (char**) &buffer_VERIFY_b, &buffer_VERIFY_len);
 
+    hex_conversion(buffer_TRUTH_RESPONSE_h, (char**) &buffer_TRUTH_RESPONSE_b, &buffer_TRUTH_RESPONSE_len);
+
     // Expect success on next valid IV && ARSN
     printf(KGRN "Checking next valid IV && valid ARSN... should be able to receive it... \n" RESET);
     status = Crypto_TC_ProcessSecurity(buffer_VERIFY_b, &buffer_VERIFY_len, &tc_nist_processed_frame);
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
-
     printf("\n");
+
+    // Check reply values
+    uint16_t reply_length = 0;
+    uint8_t sdls_ep_reply_local[1024];
+    status = Crypto_Get_Sdls_Ep_Reply(&sdls_ep_reply_local[0], &reply_length);
+    // Expect success
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+    
+    // Print local copy
+    printf("SDLS Reply: 0x");
+    for (int i =0; i < reply_length; i++)
+    {
+        printf("%02X", sdls_ep_reply_local[i]);
+    }
+    printf("\n\n");
+    // Print Global copy for sanity check
+    Crypto_Print_Sdls_Ep_Reply();
+
+    // Let's compare everything. All three should match
+    for (int i = 0; i < reply_length; i++)
+    {
+        printf(" %02X \t %02X\n", buffer_TRUTH_RESPONSE_b[i], sdls_ep_reply_local[i]);
+        ASSERT_EQ(buffer_TRUTH_RESPONSE_b[i], sdls_ep_reply_local[i]);
+        // ASSERT_EQ(buffer_TRUTH_RESPONSE_h[i], sdls_ep_reply[i]);
+    }
+
     Crypto_Shutdown();
     free(buffer_nist_key_b);
     free(buffer_VERIFY_b);
