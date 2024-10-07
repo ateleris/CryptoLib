@@ -356,6 +356,7 @@ int32_t Crypto_Key_verify(TC_t* tc_frame, int* count)
     int y;
     int32_t status = CRYPTO_LIB_SUCCESS;
     crypto_key_t* ekp = NULL;
+    tc_frame = tc_frame;
 
     if (key_if == NULL)
     {
@@ -427,10 +428,10 @@ int32_t Crypto_Key_verify(TC_t* tc_frame, int* count)
         // Initialization Vector
         for (y = 0; y < SDLS_KEYV_IV_LEN; y++)
         {
-            sdls_resp_pkt.pdu.data[pdu_data_idx] = *(tc_frame->tc_sec_header.iv + y);
-            sdls_ep_keyv_reply.blk[x].iv[y] = *(tc_frame->tc_sec_header.iv + y);
-            sdls_ep_reply[pdu_data_idx] = *(tc_frame->tc_sec_header.iv + y);
-            printf(KRED "%02X", *(tc_frame->tc_sec_header.iv + y));
+            // TODO - Need eyes on this.
+            sdls_resp_pkt.pdu.data[pdu_data_idx] =0x00; //= *(tc_frame->tc_sec_header.iv + y);
+            sdls_ep_keyv_reply.blk[x].iv[y] =0x00; //= *(tc_frame->tc_sec_header.iv + y);
+            sdls_ep_reply[pdu_data_idx] =0x00; //= *(tc_frame->tc_sec_header.iv + y);
             pdu_data_idx += 1;
             *count += 1;
         }

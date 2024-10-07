@@ -304,13 +304,14 @@ uint8_t Crypto_Prep_Reply(uint8_t* reply, uint8_t appID)
     return count;
 }
 
-uint16_t Crypto_Get_Sdls_Ep_Reply(uint8_t* buffer, uint16_t* length)
+int32_t Crypto_Get_Sdls_Ep_Reply(uint8_t* buffer, uint16_t* length)
 {
-    int16_t status = CRYPTO_LIB_SUCCESS;
-    // Length to be pulled from packet header
-    uint16_t pkt_length = 0;
+    int32_t status = CRYPTO_LIB_SUCCESS;
 
-    // Check for Null Inputs
+    // Length to be pulled from packet header
+    uint16_t pkt_length = 0;;
+
+    // Check for NULL Inputs
     if (buffer == NULL || length == NULL)
     {
         status = CRYPTO_LIB_ERR_NULL_BUFFER;
@@ -327,7 +328,7 @@ uint16_t Crypto_Get_Sdls_Ep_Reply(uint8_t* buffer, uint16_t* length)
     }
 
     // Copy our length, which will fit in the buffer
-    memcpy(buffer, sdls_ep_reply, (size_t) pkt_length);
+    memcpy(buffer, sdls_ep_reply, (size_t)pkt_length);
 
     // Update length externally
     *length = pkt_length;

@@ -386,7 +386,6 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
     SaInterface sa_if = get_sa_interface_inmemory();
     crypto_key_t* ekp = NULL;
 
-
     // NOTE: Added Transfer Frame header to the plaintext
     char* buffer_nist_key_h = "000102030405060708090A0B0C0D0E0F000102030405060708090A0B0C0D0E0F";
     char* buffer_VERIFY_h = "2003003e00ff000000001880d03a002c197f0b00040024008471fc3ad5b1c36ad56bd5a5432315cdab008675c06302465bc6d5091a29957eebed35c00a6ed8";
@@ -416,7 +415,7 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
     int buffer_nist_key_len, buffer_VERIFY_len, buffer_TRUTH_RESPONSE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t* test_association;
@@ -425,7 +424,7 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
     sa_if->sa_get_from_spi(1, &test_association);
     test_association->sa_state = SA_NONE;
 
-    // Activate SA 9
+    // Activate SA 0
     sa_if->sa_get_from_spi(0, &test_association);
     test_association->sa_state = SA_OPERATIONAL;
     test_association->ecs_len = 0;
@@ -460,7 +459,7 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
     
     // Print local copy
-    printf("SDLS Reply: 0x");
+    printf("SDLS Reply LOCAL: 0x");
     for (int i =0; i < reply_length; i++)
     {
         printf("%02X", sdls_ep_reply_local[i]);
@@ -474,7 +473,8 @@ UTEST(EP_KEY_VALIDATION, VERIFY_132_134)
     {
         // printf(" %02X \t %02X\n", buffer_TRUTH_RESPONSE_b[i], sdls_e/p_reply_local[i]);
         ASSERT_EQ(buffer_TRUTH_RESPONSE_b[i], sdls_ep_reply_local[i]);
-        // ASSERT_EQ(buffer_TRUTH_RESPONSE_h[i], sdls_ep_reply[i]);
+        ASSERT_EQ(buffer_TRUTH_RESPONSE_b[i], sdls_ep_reply[i]);
+        // printf("%02X", sdls_ep_reply[i]);
     }
 
     Crypto_Shutdown();
