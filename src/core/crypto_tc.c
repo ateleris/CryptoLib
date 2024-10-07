@@ -1793,8 +1793,16 @@ int32_t Crypto_TC_ProcessSecurity_Cam(uint8_t* ingest, int* len_ingest, TC_t* tc
 
 
     // Parse transmitted portion of IV from received frame (Will be Whole IV if iv_len==shivf_len)
-    memcpy((tc_sdls_processed_frame->tc_sec_header.iv + (sa_ptr->iv_len - sa_ptr->shivf_len)), &(ingest[TC_FRAME_HEADER_SIZE + segment_hdr_len + SPI_LEN]),
+    if (sa_ptr->shivf_len <= IV_SIZE && sa_ptr->iv_len <= IV_SIZE)
+    {
+        memcpy((tc_sdls_processed_frame->tc_sec_header.iv + (sa_ptr->iv_len - sa_ptr->shivf_len)), &(ingest[TC_FRAME_HEADER_SIZE + segment_hdr_len + SPI_LEN]),
            sa_ptr->shivf_len);
+    }
+    else
+    {
+        status = CRYPTO_LIB_ERR_SA_INVALID_IV_SIZE;
+        return status;
+    }
 
     // Handle non-transmitted IV increment case (transmitted-portion roll-over)
     status = Crypto_TC_Nontransmitted_IV_Increment(sa_ptr, tc_sdls_processed_frame);
