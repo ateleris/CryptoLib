@@ -643,8 +643,8 @@ int32_t Crypto_SEC_MON_CTRL(uint8_t *ingest)
         default:
 #ifdef PDU_DEBUG
             printf(KRED "Error: Crypto_PDU failed interpreting MC Procedure Identification Field! \n" RESET);
-            break;
 #endif
+            break;
     }
     return status;
 }

@@ -15,7 +15,7 @@
 # NASA IV&V
 # jstar-development-team@mail.nasa.gov
 
-cmake_minimum_required(VERSION 3.14.0)
+cmake_minimum_required(VERSION 3.21)
 project(crypto C)
 
 #
@@ -175,3 +175,4 @@ endif()
 if(TEST)
     add_subdirectory(test)
 endif()
+
