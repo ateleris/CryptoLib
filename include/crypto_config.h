@@ -110,8 +110,11 @@
 // Generic Defines
 #define NUM_SA              64
 #define SPI_LEN             2   /* bytes */
+#define SPI_MIN             0
+#define SPI_MAX             NUM_SA - 1
 #define KEY_SIZE            512 /* bytes */
 #define KEY_ID_SIZE         8
+#define MKID_MAX            128
 #define NUM_KEYS            256
 #define DISABLED            0
 #define ENABLED             1
@@ -131,6 +134,7 @@
 #define CHALLENGE_SIZE      16   /* bytes */
 #define CHALLENGE_MAC_SIZE  16   /* bytes */
 #define BYTE_LEN            8    /* bits */
+#define CRYPTOLIB_APPID    128
 
 // Monitoring and Control Defines
 #define EMV_SIZE 4  /* bytes */
@@ -206,6 +210,7 @@
 #define AOS_FILL_SIZE       1145 /* bytes */
 
 // SDLS Behavior Defines
+#define SDLS_OTAR_IV_OFFSET  2
 #define SDLS_KEYV_MAX_KEYS   21 /* keys */
 #define SDLS_IV_LEN          12 /* bytes */
 #define SDLS_KEYV_KEY_ID_LEN 2  /* bytes */
