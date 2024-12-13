@@ -64,7 +64,7 @@ OPTION(KMC_MDB_RH "KMC-MDB-RedHat-Integration-Testing" OFF) #Disabled by default
 OPTION(KMC_MDB_DB "KMC-MDB-Debian-Integration-Testing" OFF) #Disabled by default, enable with: -DKMC_MDB_DB=ON
 OPTION(KMC_CFFI_EXCLUDE "KMC-Exclude-Problematic-CFFI-Code" OFF) #Disabled by default, enable with: -DKMC_CFFI_EXCLUDE=ON
 
-OPTION(CRYPTO_EPROC "Enables the building and use of Extended Procedures" OFF) #Disabled by default, enable with -DCRYPTO_EPROC=ON
+OPTION(CRYPTO_EPROC "Enables the building and use of Extended Procedures" ON) #Disabled by default, enable with -DCRYPTO_EPROC=ON
 
 #
 # Custom Module Paths
