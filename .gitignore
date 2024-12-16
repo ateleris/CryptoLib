@@ -30,3 +30,4 @@ test/cmake_install.cmake
 test/CTestTestfile.cmake
 test/CMakeFiles/*
 Testing/Temporary/*
+.vs/

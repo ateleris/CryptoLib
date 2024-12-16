@@ -158,11 +158,11 @@ foreach(SOURCE_PATH ${UNIT_FILES})
     #     find_library(${Python3_LIBRARIES} pycryptodome)
     # endif()
 
-    add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${EXECUTABLE_NAME}> ${PROJECT_BINARY_DIR}/bin/${EXECUTABLE_NAME}
-            COMMAND ${CMAKE_COMMAND} -E remove $<TARGET_FILE:${EXECUTABLE_NAME}>
-            COMMENT "Created ${PROJECT_BINARY_DIR}/bin/${EXECUTABLE_NAME}"
-            )
+    #add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+     #       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${EXECUTABLE_NAME}> ${PROJECT_BINARY_DIR}/bin/${EXECUTABLE_NAME}
+     #       COMMAND ${CMAKE_COMMAND} -E remove $<TARGET_FILE:${EXECUTABLE_NAME}>
+     #       COMMENT "Created ${PROJECT_BINARY_DIR}/bin/${EXECUTABLE_NAME}"
+     #       )
 endforeach(SOURCE_PATH ${UNIT_FILES}) 
 
 if(${KMC_MDB_RH} OR ${KMC_MDB_DB})
