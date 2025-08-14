@@ -549,6 +549,25 @@ void sa_populate(void)
     sa[15].gvcid_blk.vcid  = 3;
     sa[15].gvcid_blk.mapid = TYPE_TC;
 
+    // TC - E2EQSS
+    sa[42].spi             = 42;
+    sa[42].sa_state        = SA_OPERATIONAL;
+    sa[42].ekid            = 130;
+    sa[42].ecs_len         = 1;
+    sa[42].ecs             = CRYPTO_CIPHER_AES256_GCM;
+    sa[42].est             = 1;
+    sa[42].ast             = 0;
+    sa[42].shivf_len       = 12;
+    sa[42].iv_len          = 12;
+    sa[42].arsn_len        = 0;
+    sa[42].arsnw_len       = 0;
+    sa[42].arsnw           = 0;
+    sa[42].stmacf_len      = 16;
+    sa[42].gvcid_blk.tfvn  = 0;
+    sa[42].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[42].gvcid_blk.vcid  = 42;
+    sa[42].gvcid_blk.mapid = TYPE_TC;
+
     sa_perform_save(&sa[0]);
 }
 
