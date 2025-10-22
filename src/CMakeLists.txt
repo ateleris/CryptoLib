@@ -138,15 +138,15 @@ else()
 endif()
 
 if(CRYPTO_LIBGCRYPT)
-    target_link_libraries(crypto gcrypt)
+    target_link_libraries(crypto PRIVATE gcrypt)
 endif()
 
 if(CRYPTO_KMC)
-    target_link_libraries(crypto curl)
+    target_link_libraries(crypto PRIVATE curl)
 endif()
 
 if(CRYPTO_WOLFSSL)
-    target_link_libraries(crypto wolfssl)
+    target_link_libraries(crypto PRIVATE wolfssl)
 endif()
 
 if(SA_MARIADB)
@@ -155,7 +155,7 @@ if(SA_MARIADB)
     execute_process(COMMAND mysql_config --libs
             OUTPUT_VARIABLE MYSQL_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
     target_compile_options(crypto PUBLIC ${MYSQL_CFLAGS})
-    target_link_libraries(crypto ${MYSQL_LIBS})
+    target_link_libraries(crypto PRIVATE ${MYSQL_LIBS})
 endif()
 
 file(GLOB CRYPTO_INCLUDES ../include/*.h)
