@@ -598,6 +598,42 @@ static int32_t key_init(void)
     key_ring[136].key_len   = 32;
     key_ring[136].key_state = KEY_DEACTIVATED;
 
+    // 137
+    key_ring[137].value[0]  = 0x0;
+    key_ring[137].value[1]  = 0x0;
+    key_ring[137].value[2]  = 0x0;
+    key_ring[137].value[3]  = 0x0;
+    key_ring[137].value[4]  = 0x0;
+    key_ring[137].value[5]  = 0x0;
+    key_ring[137].value[6]  = 0x0;
+    key_ring[137].value[7]  = 0x0;
+    key_ring[137].value[8]  = 0x0;
+    key_ring[137].value[9]  = 0x0;
+    key_ring[137].value[10] = 0x0;
+    key_ring[137].value[11] = 0x0;
+    key_ring[137].value[12] = 0x0;
+    key_ring[137].value[13] = 0x0;
+    key_ring[137].value[14] = 0x0;
+    key_ring[137].value[15] = 0x0;
+    key_ring[137].value[16] = 0x0;
+    key_ring[137].value[17] = 0x0;
+    key_ring[137].value[18] = 0x0;
+    key_ring[137].value[19] = 0x0;
+    key_ring[137].value[20] = 0x0;
+    key_ring[137].value[21] = 0x0;
+    key_ring[137].value[22] = 0x0;
+    key_ring[137].value[23] = 0x0;
+    key_ring[137].value[24] = 0x0;
+    key_ring[137].value[25] = 0x0;
+    key_ring[137].value[26] = 0x0;
+    key_ring[137].value[27] = 0x0;
+    key_ring[137].value[28] = 0x0;
+    key_ring[137].value[29] = 0x0;
+    key_ring[137].value[30] = 0x0;
+    key_ring[137].value[31] = 0x0;
+    key_ring[137].key_len   = 32;
+    key_ring[137].key_state = KEY_DEACTIVATED;
+
 #ifdef DEBUG
     printf(KGRN "Key internal interface intialized \n" RESET);
 #endif
