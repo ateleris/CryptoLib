@@ -549,6 +549,22 @@ void sa_populate(void)
     sa[15].gvcid_blk.vcid  = 3;
     sa[15].gvcid_blk.mapid = TYPE_TC;
 
+    // TM - E2EQSS CLEAR MODE (Operational)
+    sa[41].spi             = 41;
+    sa[41].sa_state        = SA_OPERATIONAL;
+    sa[41].est             = 0;
+    sa[41].ast             = 0;
+    sa[41].shivf_len       = 12;
+    sa[41].iv_len          = 12;
+    sa[41].shsnf_len       = 0;
+    sa[41].arsnw           = 5;
+    sa[41].arsnw_len       = 1;
+    sa[41].arsn_len        = 0;
+    sa[41].gvcid_blk.tfvn  = 0;
+    sa[41].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[41].gvcid_blk.vcid  = 4;
+    sa[41].gvcid_blk.mapid = TYPE_TM;
+
     // TC - E2EQSS Encryption Authentication
     sa[42].spi             = 42;
     sa[42].sa_state        = SA_KEYED;
