@@ -627,6 +627,38 @@ void sa_populate(void)
     sa[44].gvcid_blk.scid  = SCID & 0x3FF;
     sa[44].gvcid_blk.vcid  = 44;
     sa[44].gvcid_blk.mapid = TYPE_TC;
+    
+    // TC
+    sa[50].spi             = 50;
+    sa[50].sa_state        = SA_OPERATIONAL;
+    sa[50].est             = 0;
+    sa[50].ast             = 0;
+    sa[50].shivf_len       = 12;
+    sa[50].iv_len          = 12;
+    sa[50].shsnf_len       = 0;
+    sa[50].arsnw           = 5;
+    sa[50].arsnw_len       = 1;
+    sa[50].arsn_len        = 0;
+    sa[50].gvcid_blk.tfvn  = 0;
+    sa[50].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[50].gvcid_blk.vcid  = 50;
+    sa[50].gvcid_blk.mapid = TYPE_TC;
+
+    // TM
+    sa[51].spi             = 51;
+    sa[51].sa_state        = SA_OPERATIONAL;
+    sa[51].est             = 0;
+    sa[51].ast             = 0;
+    sa[51].shivf_len       = 12;
+    sa[51].iv_len          = 12;
+    sa[51].shsnf_len       = 0;
+    sa[51].arsnw           = 5;
+    sa[51].arsnw_len       = 1;
+    sa[51].arsn_len        = 0;
+    sa[51].gvcid_blk.tfvn  = 0;
+    sa[51].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[51].gvcid_blk.vcid  = 5;
+    sa[51].gvcid_blk.mapid = TYPE_TM;
 
     sa_perform_save(&sa[0]);
 }
