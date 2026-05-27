@@ -610,8 +610,8 @@ void sa_populate(void)
     // TC - E2EQSS Encryption Authentication EMPTY
     sa[44].spi             = 44;
     sa[44].sa_state        = SA_UNKEYED;
-    sa[44].ekid            = 137;
-    sa[44].akid            = 130;
+    sa[44].ekid            = 135;
+    sa[44].akid            = 135;
     sa[44].ecs_len         = 1;
     sa[44].ecs             = CRYPTO_CIPHER_AES256_GCM;
     sa[44].est             = 1;
