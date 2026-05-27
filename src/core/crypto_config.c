@@ -94,7 +94,7 @@ int32_t Crypto_SC_Init(void)
     //Crypto_Config_Add_Gvcid_Managed_Parameters(TM_UT_Managed_Parameters);
     //TM_UT_Managed_Parameters.vcid = 5;
     //Crypto_Config_Add_Gvcid_Managed_Parameters(TM_UT_Managed_Parameters);
-    status = Crypto_Init();
+    //status = Crypto_Init();
     return status;
 }
 
