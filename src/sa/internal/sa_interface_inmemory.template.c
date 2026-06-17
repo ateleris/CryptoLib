@@ -232,6 +232,37 @@ static int32_t sa_save_sa(SecurityAssociation_t *sa)
  **/
 void sa_populate(void)
 {
+    sa[0].spi             = 0;
+    sa[0].sa_state        = SA_OPERATIONAL;
+    sa[0].est             = 0;
+    sa[0].ast             = 0;
+    sa[0].shivf_len       = 12;
+    sa[0].iv_len          = 12;
+    sa[0].shsnf_len       = 0;
+    sa[0].arsnw           = 5;
+    sa[0].arsnw_len       = 1;
+    sa[0].arsn_len        = 0;
+    sa[0].gvcid_blk.tfvn  = 0;
+    sa[0].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[0].gvcid_blk.vcid  = 0;
+    sa[0].gvcid_blk.mapid = TYPE_TC;
+    
+    sa[1].spi             = 0;
+    sa[1].sa_state        = SA_OPERATIONAL;
+    sa[1].est             = 0;
+    sa[1].ast             = 0;
+    sa[1].shivf_len       = 12;
+    sa[1].iv_len          = 12;
+    sa[1].shsnf_len       = 0;
+    sa[1].arsnw           = 5;
+    sa[1].arsnw_len       = 1;
+    sa[1].arsn_len        = 0;
+    sa[1].gvcid_blk.tfvn  = 0;
+    sa[1].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[1].gvcid_blk.vcid  = 0;
+    sa[1].gvcid_blk.mapid = TYPE_TM;
+
+    /*
     // Security Associations
     sa[0].spi             = 0;
     sa[0].sa_state        = SA_UNKEYED;
@@ -659,6 +690,7 @@ void sa_populate(void)
     sa[51].gvcid_blk.scid  = SCID & 0x3FF;
     sa[51].gvcid_blk.vcid  = 5;
     sa[51].gvcid_blk.mapid = TYPE_TM;
+    */
 
     sa_perform_save(&sa[0]);
 }
