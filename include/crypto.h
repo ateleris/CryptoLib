@@ -299,7 +299,7 @@ int32_t Crypto_SEC_MON_CTRL(uint8_t *ingest);
 int32_t Crypto_USER_DEFINED_CMD(uint8_t *ingest);
 
 // Managed Parameter Functions
-int32_t Crypto_Get_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uint8_t vcid,
+int32_t Crypto_Get_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uint8_t vcid, uint8_t frame_type,
                                                 GvcidManagedParameters_t *managed_parameters_in,
                                                 GvcidManagedParameters_t *managed_parameters_out);
 // Project-wide support functions
@@ -312,6 +312,7 @@ extern char *crypto_deep_copy_string(char *src_string);
 extern CCSDS_t          sdls_frame;
 extern SDLS_KEYV_RPLY_t sdls_ep_keyv_reply;
 extern uint8_t          sdls_ep_reply[TC_MAX_FRAME_SIZE];
+extern uint8_t          sdls_ep_reply_pending; // 1 when sdls_ep_reply holds a fresh, unread reply
 // extern TM_t tm_frame;
 extern uint8_t                  tm_frame[1786];
 extern TM_FramePrimaryHeader_t  tm_frame_pri_hdr;

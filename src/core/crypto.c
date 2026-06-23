@@ -44,6 +44,7 @@ CFS_MODULE_DECLARE_LIB(crypto);
 // SDLS Replies
 SDLS_KEYV_RPLY_t sdls_ep_keyv_reply; // Reply block for challenged keys
 uint8_t          sdls_ep_reply[TC_MAX_FRAME_SIZE];
+uint8_t          sdls_ep_reply_pending = 0; // set when a reply has been built, cleared when retrieved
 CCSDS_t          sdls_frame;
 // TM
 uint8_t                  tm_frame[TM_MAX_FRAME_SIZE]; // TM Global Frame
@@ -323,6 +324,7 @@ uint8_t Crypto_Prep_Reply(uint8_t *reply, uint8_t appID)
     reply[count++] = (sdls_frame.tlv_pdu.hdr.pdu_len & 0x00FF);
 
     sdls_frame.tlv_pdu.hdr.type = 0;
+    sdls_ep_reply_pending       = 1;
     return count;
 }
 
@@ -348,6 +350,12 @@ int32_t Crypto_Get_Sdls_Ep_Reply(uint8_t *buffer, uint16_t *length)
         return status;
     }
 
+    if (sdls_ep_reply_pending == 0)
+    {
+        *length = 0;
+        return status;
+    }
+
     pkt_length = sdls_frame.hdr.pkt_length + 1;
 
     // Sanity Check on length
@@ -361,6 +369,8 @@ int32_t Crypto_Get_Sdls_Ep_Reply(uint8_t *buffer, uint16_t *length)
 
     // Update length externally
     *length = pkt_length;
+
+    sdls_ep_reply_pending = 0;
 
     return status;
 }
@@ -829,17 +839,36 @@ int32_t Crypto_USER_DEFINED_CMD(uint8_t *ingest)
 }
 
 /**
+ * @brief Function: Crypto_Gvcid_Frame_Type
+ * Classifies a managed-parameter entry as TC / TM / AOS. CCSDS gives TM and TC the
+ * same TFVN, so the GVCID alone cannot disambiguate frame type; the type is carried
+ * by the FecfPresent enum class on the entry (TC_, TM_ or AOS_ prefixed values).
+ * @param p: GvcidManagedParameters_t*
+ * @return uint8_t: TYPE_TC / TYPE_TM / TYPE_AOS
+ **/
+static uint8_t Crypto_Gvcid_Frame_Type(const GvcidManagedParameters_t *p)
+{
+    if (p->has_fecf == TC_NO_FECF || p->has_fecf == TC_HAS_FECF)
+        return TYPE_TC;
+    if (p->has_fecf == TM_NO_FECF || p->has_fecf == TM_HAS_FECF)
+        return TYPE_TM;
+    return TYPE_AOS; // AOS_NO_FECF / AOS_HAS_FECF
+}
+
+/**
  * @brief Function: Crypto_Get_Managed_Parameters_For_Gvcid
  * @param tfvn: uint8_t
  * @param scid: uint16_t
  * @param vcid: uint8_t
+ * @param frame_type: uint8_t (TYPE_TC / TYPE_TM / TYPE_AOS) — disambiguates entries
+ *        that share a GVCID across frame types (e.g. TC and TM both on VCID 0)
  * @param managed_parameters_in: GvcidManagedParameters_t*
  * @param managed_parameters_out: GvcidManagedParameters_t*
  * @return int32: Success/Failure
  *
  * CCSDS Compliance: CCSDS 355.0-B-2 Section 2.4 (Managed Parameters)
  **/
-int32_t Crypto_Get_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uint8_t vcid,
+int32_t Crypto_Get_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uint8_t vcid, uint8_t frame_type,
                                                 GvcidManagedParameters_t *managed_parameters_in,
                                                 GvcidManagedParameters_t *managed_parameters_out)
 {
@@ -853,8 +882,10 @@ int32_t Crypto_Get_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uin
     {
         for (int i = 0; i < gvcid_counter; i++)
         {
+            // Match the GVCID *and* the frame type — TC and TM may share a GVCID
+            // (same TFVN/SCID/VCID), so the type must disambiguate the entry.
             if (managed_parameters_in[i].tfvn == tfvn && managed_parameters_in[i].scid == scid &&
-                managed_parameters_in[i].vcid == vcid)
+                managed_parameters_in[i].vcid == vcid && Crypto_Gvcid_Frame_Type(&managed_parameters_in[i]) == frame_type)
             {
                 *managed_parameters_out = managed_parameters_in[i];
                 status                  = CRYPTO_LIB_SUCCESS;
@@ -883,7 +914,7 @@ int32_t Crypto_Get_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uin
  * @note Allows EPs to be processed one of two ways.
  * @note - 1) By using a packet layer with APID 0x1980
  * @note - 2) By using a defined Virtual Channel ID
- * @note Requires this to happen on either SPI_MIN (0) or SPI_MAX (configurable)
+ * @note Requires this to happen on either SPI_MIN (0) or the CCSDS reserved SDLS_EP_RESERVED_SPI (65535)
  *
  * CCSDS Compliance: CCSDS 355.0-B-2 Section 3.2 (Protocol Description)
  **/
@@ -898,10 +929,11 @@ int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t *tc_sdls_processed_frame, uin
     {
         status = CRYPTO_LIB_ERR_NULL_BUFFER;
     }
-    // Validate correct SA for EPs
+    // Validate correct SA for EPs.
+    // Per CCSDS 355.1-B-1 (4.3.1.2) EP service PDUs use the reserved SPIs: all-zeros (0) or all-ones (65535).
     uint8_t valid_ep_sa = CRYPTO_FALSE;
     if ((tc_sdls_processed_frame->tc_sec_header.spi == SPI_MIN) ||
-        (tc_sdls_processed_frame->tc_sec_header.spi == SPI_MAX))
+        (tc_sdls_processed_frame->tc_sec_header.spi == SDLS_EP_RESERVED_SPI))
     {
         valid_ep_sa = CRYPTO_TRUE;
     }

@@ -112,6 +112,7 @@
 #define SPI_LEN             2 /* bytes */
 #define SPI_MIN             0
 #define SPI_MAX             NUM_SA - 1
+#define SDLS_EP_RESERVED_SPI 65535
 #define KEY_SIZE            512 /* bytes */
 #define KEY_ID_SIZE         8
 #define MKID_MAX            128
@@ -234,9 +235,8 @@
 #define SDLS_KEYID_LEN          2  /* bytes */
 
 // TC Behavior Defines
-#define TC_SDLS_EP_VCID \
-    4 // VCID which has SDLS PDUs (JPL uses VCIDs to determine TC type, there is no space packet layer with APIDs). Set
-      // to -1 if uses SP APIDs.
+// VCID which has SDLS PDUs (JPL uses VCIDs to determine TC type, there is no space packet layer with APIDs). Set to -1 if uses SP APIDs.
+#define TC_SDLS_EP_VCID -1 
 
 // TM Behavior Defines
 #define TM_CADU_HAS_ASM 1 // Skip 0x1acffc1d at beginning of each frame
