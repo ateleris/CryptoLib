@@ -55,7 +55,10 @@ jobs:
 
     - name: Generate Coverage Report
       working-directory: ${{github.workspace}}
-      run: make gcov
+      run: |
+        pip3 install --break-system-packages gcovr
+        mkdir -p coverage
+        gcovr --root . --exclude '.*/test/.*' --exclude '.*/support/.*' --html --html-details -o coverage/index.html --print-summary
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
@@ -173,7 +176,10 @@ jobs:
 
     - name: Generate Coverage Report
       working-directory: ${{github.workspace}}
-      run: make gcov
+      run: |
+        pip3 install --break-system-packages gcovr
+        mkdir -p coverage
+        gcovr --root . --exclude '.*/test/.*' --exclude '.*/support/.*' --html --html-details -o coverage/index.html --print-summary
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
