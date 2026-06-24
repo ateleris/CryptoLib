@@ -1584,7 +1584,8 @@ UTEST(TC_APPLY_SECURITY, NOMINAL_TC_ENC_DEC)
 
     TC_t* decTC = malloc(sizeof(uint8_t) * TC_SIZE);
 
-    status = Crypto_TC_ProcessSecurity(encFrame, (int*)(&encFrameLength), decTC);
+    int decFrameLength = encFrameLength;
+    status = Crypto_TC_ProcessSecurity(encFrame, &decFrameLength, decTC);
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
 
     int cpm = memcmp(decTC->tc_pdu, payload, sizeof(payload));
@@ -1641,7 +1642,8 @@ UTEST(TC_APPLY_SECURITY, NOMINAL_TC_AUTH_ENC_DEC)
 
     TC_t *decTC = malloc(sizeof(uint8_t) * TC_SIZE);
 
-    status = Crypto_TC_ProcessSecurity(encFrame, (int *)(&encFrameLength), decTC);
+    int decFrameLength = encFrameLength;
+    status = Crypto_TC_ProcessSecurity(encFrame, &decFrameLength, decTC);
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
 
     int cpm = memcmp(decTC->tc_pdu, payload, sizeof(payload));
