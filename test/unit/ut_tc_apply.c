@@ -1566,7 +1566,7 @@ UTEST(TC_APPLY_SECURITY, NOMINAL_TC_ENC_DEC)
     int frameLength = sizeof(headers) + sizeof(payload);
 
     SecurityAssociation_t *testSA;
-    status = sa_if->sa_get_from_spi(42, &testSA);
+    status = sa_if->sa_get_from_spi(21, &testSA);
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
     testSA->sa_state = SA_OPERATIONAL;
 
@@ -1623,7 +1623,7 @@ UTEST(TC_APPLY_SECURITY, NOMINAL_TC_AUTH_ENC_DEC)
     int frameLength = sizeof(headers) + sizeof(payload);
 
     SecurityAssociation_t *testSA;
-    status = sa_if->sa_get_from_spi(43, &testSA);
+    status = sa_if->sa_get_from_spi(22, &testSA);
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
     testSA->sa_state = SA_OPERATIONAL;
 

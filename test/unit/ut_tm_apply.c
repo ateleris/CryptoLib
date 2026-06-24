@@ -2507,7 +2507,7 @@ UTEST(TM_APPLY_SECURITY, NOMINAL_TM_ENC_DEC)
     int frameLength = sizeof(headers) + sizeof(security_header) + sizeof(payload);
 
     SecurityAssociation_t *testSA;
-    status = sa_if->sa_get_from_spi(41, &testSA);
+    status = sa_if->sa_get_from_spi(20, &testSA);
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
     testSA->sa_state = SA_OPERATIONAL;
 

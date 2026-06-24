@@ -254,7 +254,7 @@ int32_t Crypto_Check_Anti_Replay_ARSNW(SecurityAssociation_t *sa_ptr, uint8_t *a
 int32_t Crypto_Check_Anti_Replay_GCM(SecurityAssociation_t *sa_ptr, uint8_t *iv, int8_t *iv_valid);
 
 // SDLS Related Functions
-extern uint8_t Crypto_Prep_Reply(uint8_t *ingest, uint8_t appID);
+extern uint8_t Crypto_Prep_Reply(uint8_t *ingest, uint16_t appID);
 extern void    Crypto_Print_Sdls_Ep_Reply(void);
 extern int32_t Crypto_Get_Sdls_Ep_Reply(uint8_t *buffer, uint16_t *length);
 
@@ -292,6 +292,8 @@ void clean_akref(SecurityAssociation_t *sa);
 
 // Determine Payload Data Unit
 int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t *tc_sdls_processed_frame, uint8_t *ingest, uint16_t len_ingest);
+
+int32_t Crypto_Process_Clear_TC_EP(uint8_t *frame, int len);
 int32_t Crypto_PDU(uint8_t *ingest, TC_t *tc_frame);
 int32_t Crypto_SG_KEY_MGMT(uint8_t *ingest, TC_t *tc_frame);
 int32_t Crypto_SG_SA_MGMT(uint8_t *ingest, TC_t *tc_frame);

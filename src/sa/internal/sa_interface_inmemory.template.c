@@ -549,6 +549,64 @@ void sa_populate(void)
     sa[15].gvcid_blk.vcid  = 3;
     sa[15].gvcid_blk.mapid = TYPE_TC;
 
+    // Test SA (used by ut_tm_apply NOMINAL_TM_ENC_DEC). TM, SCID, VCID 4, clear mode.
+    sa[20].spi             = 20;
+    sa[20].sa_state        = SA_KEYED;
+    sa[20].est             = 0;
+    sa[20].ast             = 0;
+    sa[20].shivf_len       = 12;
+    sa[20].iv_len          = 12;
+    sa[20].shsnf_len       = 0;
+    sa[20].arsnw           = 5;
+    sa[20].arsnw_len       = 1;
+    sa[20].arsn_len        = 0;
+    sa[20].gvcid_blk.tfvn  = 0;
+    sa[20].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[20].gvcid_blk.vcid  = 4;
+    sa[20].gvcid_blk.mapid = TYPE_TM;
+
+    // Test SAs (used by ut_tc_apply NOMINAL_TC_ENC_DEC / NOMINAL_TC_AUTH_ENC_DEC).
+    // TC, SCID, VCID 42, AES-GCM auth+enc; left SA_KEYED so each test activates its own.
+    sa[21].spi             = 21;
+    sa[21].sa_state        = SA_KEYED;
+    sa[21].ekid            = 130;
+    sa[21].akid            = 130;
+    sa[21].ecs_len         = 1;
+    sa[21].ecs             = CRYPTO_CIPHER_AES256_GCM;
+    sa[21].est             = 1;
+    sa[21].ast             = 1;
+    sa[21].iv_len          = 12;
+    sa[21].shivf_len       = 12;
+    sa[21].arsn_len        = 0;
+    sa[21].arsnw_len       = 1;
+    sa[21].arsnw           = 5;
+    sa[21].stmacf_len      = 16;
+    sa[21].abm_len         = ABM_SIZE;
+    sa[21].gvcid_blk.tfvn  = 0;
+    sa[21].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[21].gvcid_blk.vcid  = 42;
+    sa[21].gvcid_blk.mapid = TYPE_TC;
+
+    sa[22].spi             = 22;
+    sa[22].sa_state        = SA_KEYED;
+    sa[22].ekid            = 130;
+    sa[22].akid            = 130;
+    sa[22].ecs_len         = 1;
+    sa[22].ecs             = CRYPTO_CIPHER_AES256_GCM;
+    sa[22].est             = 1;
+    sa[22].ast             = 1;
+    sa[22].iv_len          = 12;
+    sa[22].shivf_len       = 12;
+    sa[22].arsn_len        = 0;
+    sa[22].arsnw_len       = 1;
+    sa[22].arsnw           = 5;
+    sa[22].stmacf_len      = 16;
+    sa[22].abm_len         = ABM_SIZE;
+    sa[22].gvcid_blk.tfvn  = 0;
+    sa[22].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[22].gvcid_blk.vcid  = 42;
+    sa[22].gvcid_blk.mapid = TYPE_TC;
+
     sa_perform_save(&sa[0]);
 }
 
@@ -1001,6 +1059,7 @@ static int32_t sa_get_operational_sa_from_gvcid(uint8_t tfvn, uint16_t scid, uin
  **/
 static int32_t sa_start(TC_t *tc_frame)
 {
+    (void)tc_frame; // unused in this case
     // Local variables
     uint8_t        count = 0;
     uint16_t       spi   = 0x0000;
@@ -1240,15 +1299,20 @@ static int32_t sa_rekey(TC_t *tc_frame)
             // CCSDS 355.1-B-1 §5.5.1.4.2.2
             if (sa[spi].est == 1)
             {
-                sa[spi].ekid = ((uint8_t)sdls_frame.tlv_pdu.data[count] << BYTE_LEN) |
-                               (uint8_t)sdls_frame.tlv_pdu.data[count + 1];
-                count = count + 2;
+                // Key ID is a managed-length field (EP_KEY_ID_LEN octets, big-endian).
+                uint32_t ekid = 0;
+                for (int k = 0; k < EP_KEY_ID_LEN; k++)
+                    ekid = (ekid << BYTE_LEN) | (uint8_t)sdls_frame.tlv_pdu.data[count + k];
+                sa[spi].ekid = (uint16_t)ekid;
+                count         = count + EP_KEY_ID_LEN;
             }
             if (sa[spi].ast == 1)
             {
-                sa[spi].akid = ((uint8_t)sdls_frame.tlv_pdu.data[count] << BYTE_LEN) |
-                               (uint8_t)sdls_frame.tlv_pdu.data[count + 1];
-                count = count + 2;
+                uint32_t akid = 0;
+                for (int k = 0; k < EP_KEY_ID_LEN; k++)
+                    akid = (akid << BYTE_LEN) | (uint8_t)sdls_frame.tlv_pdu.data[count + k];
+                sa[spi].akid = (uint16_t)akid;
+                count         = count + EP_KEY_ID_LEN;
             }
 
             if (sa[spi].est == 1 && sa[spi].ast == 0)

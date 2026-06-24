@@ -133,8 +133,9 @@
 #define CHALLENGE_SIZE      16   /* bytes */
 #define CHALLENGE_MAC_SIZE  16   /* bytes */
 #define BYTE_LEN            8    /* bits */
-#define CRYPTOLIB_APPID     128
-#define MAX_IV_LEN          32 /* bytes */
+#define CRYPTOLIB_APPID     384
+#define EP_KEY_ID_LEN       4    /* bytes — CCSDS 355.1-B-1 §5.4 */
+#define MAX_IV_LEN          32   /* bytes */
 
 // Configurable via build flags
 #ifndef NUM_SA
