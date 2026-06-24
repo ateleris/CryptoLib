@@ -308,7 +308,7 @@ UTEST(TM_PROCESS_SECURITY, HAPPY_PATH_CLEAR_FECF)
     // Determine managed parameters by GVCID, which nominally happens in TO
     status =
         Crypto_Get_Managed_Parameters_For_Gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid, tm_frame_pri_hdr.vcid,
-                                                gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
+                                                TYPE_TM, gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
     // Now, byte by byte verify the static frame in memory is equivalent to what we started with
     for (int i = 0; i < tm_current_managed_parameters_struct.max_frame_size; i++)
     {
@@ -462,7 +462,7 @@ UTEST(TM_PROCESS_SECURITY, SECONDARY_HDR_PRESENT_PLAINTEXT)
     // Determine managed parameters by GVCID, which nominally happens in TO
     status =
         Crypto_Get_Managed_Parameters_For_Gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid, tm_frame_pri_hdr.vcid,
-                                                gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
+                                                TYPE_TM, gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
     // Now, byte by byte verify the static frame in memory is equivalent to what we started with
     for (int i = 0; i < tm_current_managed_parameters_struct.max_frame_size; i++)
     {
@@ -789,7 +789,7 @@ UTEST(TM_PROCESS_SECURITY, AES_CMAC_256_TEST_0)
     // Determine managed parameters by GVCID, which nominally happens in TO
     status =
         Crypto_Get_Managed_Parameters_For_Gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid, tm_frame_pri_hdr.vcid,
-                                                gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
+                                                TYPE_TM, gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
     // Determine security association by GVCID, which nominally happens in TO
     // status = sa_if->sa_get_operational_sa_from_gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid,
     // tm_frame_pri_hdr.vcid, map_id, &sa_ptr);
@@ -967,7 +967,7 @@ UTEST(TM_PROCESS_SECURITY, AES_CMAC_256_TEST_1)
     // Determine managed parameters by GVCID, which nominally happens in TO
     status =
         Crypto_Get_Managed_Parameters_For_Gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid, tm_frame_pri_hdr.vcid,
-                                                gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
+                                                TYPE_TM, gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
     // Determine security association by GVCID, which nominally happens in TO
     // status = sa_if->sa_get_operational_sa_from_gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid,
     // tm_frame_pri_hdr.vcid, map_id, &sa_ptr);
@@ -1143,7 +1143,7 @@ UTEST(TM_PROCESS_ENC_VAL, AES_HMAC_SHA_256_TEST_0)
     // Determine managed parameters by GVCID, which nominally happens in TO
     status =
         Crypto_Get_Managed_Parameters_For_Gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid, tm_frame_pri_hdr.vcid,
-                                                gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
+                                                TYPE_TM, gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
     // Determine security association by GVCID, which nominally happens in TO
     // status = sa_if->sa_get_operational_sa_from_gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid,
     // tm_frame_pri_hdr.vcid, map_id, &sa_ptr);
@@ -1319,7 +1319,7 @@ UTEST(TM_PROCESS_ENC_VAL, AES_HMAC_SHA_256_TEST_1)
     // Determine managed parameters by GVCID, which nominally happens in TO
     status =
         Crypto_Get_Managed_Parameters_For_Gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid, tm_frame_pri_hdr.vcid,
-                                                gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
+                                                TYPE_TM, gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
     // Determine security association by GVCID, which nominally happens in TO
     // status = sa_if->sa_get_operational_sa_from_gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid,
     // tm_frame_pri_hdr.vcid, map_id, &sa_ptr);
@@ -1498,7 +1498,7 @@ UTEST(TM_PROCESS_ENC_VAL, AES_HMAC_SHA_512_TEST_0)
     // Determine managed parameters by GVCID, which nominally happens in TO
     status =
         Crypto_Get_Managed_Parameters_For_Gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid, tm_frame_pri_hdr.vcid,
-                                                gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
+                                                TYPE_TM, gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
     // Determine security association by GVCID, which nominally happens in TO
     // status = sa_if->sa_get_operational_sa_from_gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid,
     // tm_frame_pri_hdr.vcid, map_id, &sa_ptr);
@@ -1677,7 +1677,7 @@ UTEST(TM_PROCESS_ENC_VAL, AES_HMAC_SHA_512_TEST_1)
     // Determine managed parameters by GVCID, which nominally happens in TO
     status =
         Crypto_Get_Managed_Parameters_For_Gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid, tm_frame_pri_hdr.vcid,
-                                                gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
+                                                TYPE_TM, gvcid_managed_parameters_array, &tm_current_managed_parameters_struct);
     // Determine security association by GVCID, which nominally happens in TO
     // status = sa_if->sa_get_operational_sa_from_gvcid(tm_frame_pri_hdr.tfvn, tm_frame_pri_hdr.scid,
     // tm_frame_pri_hdr.vcid, map_id, &sa_ptr);
