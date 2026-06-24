@@ -331,7 +331,7 @@ UTEST(TC_PROCESS, HAPPY_PATH_PROCESS_STATIC_IV_ROLLOVER)
 
     int32_t return_val = -1;
 
-    TC_t tc_sdls_processed_frame;
+    TC_t tc_sdls_processed_frame = {0};
     memset(&tc_sdls_processed_frame, 0, (sizeof(uint8_t) * TC_SIZE));
 
     // Default SA
@@ -524,7 +524,7 @@ UTEST(TC_PROCESS, HAPPY_PATH_PROCESS_NONTRANSMITTED_INCREMENTING_ARSN_ROLLOVER)
 
     int32_t return_val = -1;
 
-    TC_t tc_sdls_processed_frame;
+    TC_t tc_sdls_processed_frame = {0};
     memset(&tc_sdls_processed_frame, 0, (sizeof(uint8_t) * TC_SIZE));
 
     // Default SA

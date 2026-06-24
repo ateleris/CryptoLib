@@ -39,7 +39,7 @@ UTEST(EP_KEY_MGMT, OTAR_0_140_142)
     int      buffer_nist_key_len, buffer_OTAR_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -108,7 +108,7 @@ UTEST(EP_KEY_MGMT, ACTIVATE_141_142)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_ACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -184,7 +184,7 @@ UTEST(EP_KEY_MGMT, DEACTIVATE_142)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_DEACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -257,7 +257,7 @@ UTEST(EP_KEY_MGMT, INVENTORY_132_134)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_INVENTORY_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -491,7 +491,7 @@ UTEST(EP_KEY_MGMT, OTAR_0_140_142_MK_NOT_ACTIVE)
     int      buffer_nist_key_len, buffer_OTAR_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -594,7 +594,7 @@ UTEST(EP_KEY_MGMT, OTAR_0_140_142_BAD_DECRYPT)
     int      buffer_nist_key_len, buffer_OTAR_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -666,7 +666,7 @@ UTEST(EP_KEY_MGMT, DEACTIVATE_142_NO_PUS)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_DEACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -748,7 +748,7 @@ UTEST(EP_KEY_MGMT, DEACTIVATE_142_NO_PUS_BAD_TLV)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_DEACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -826,7 +826,7 @@ UTEST(EP_KEY_MGMT, DEACTIVATE_142_PUS_BAD_TLV)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_DEACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -941,7 +941,7 @@ UTEST(EP_KEY_MGMT, TLV_KEY_DEACTIVATE_TESTS)
         buffer_TLV_MAX_PLUS_len, buffer_TLV_ONE_len, buffer_TLV_ZERO_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
