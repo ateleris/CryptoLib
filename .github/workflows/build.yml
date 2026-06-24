@@ -20,7 +20,7 @@ jobs:
     container:
         image: ivvitc/cryptolib:20250108
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: apt-get update
     - name: Install Dependencies
@@ -40,7 +40,7 @@ jobs:
     container:
         image: ivvitc/cryptolib:20250108
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: apt-get update
     - name: Install Dependencies
@@ -74,7 +74,7 @@ jobs:
     container:
         image: ivvitc/cryptolib:20250108
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: apt-get update
     - name: Install Dependencies
@@ -126,7 +126,7 @@ jobs:
     container:
       image: rockylinux/rockylinux:9
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: yum update -y
     - name: Install Dependencies
@@ -179,7 +179,7 @@ jobs:
     container:
         image: ivvitc/cryptolib:20250108
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: apt-get update
     - name: Install Dependencies
