@@ -42,7 +42,7 @@ UTEST(EP_MC, MC_REGULAR_PING)
     int      buffer_PING_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -129,7 +129,7 @@ UTEST(EP_MC, MC_STATUS)
     int      buffer_STATUS_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -211,7 +211,7 @@ UTEST(EP_MC, MC_DUMP)
     int      buffer_DUMP_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -296,7 +296,7 @@ UTEST(EP_MC, MC_ERASE)
     int      buffer_ERASE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -379,7 +379,7 @@ UTEST(EP_MC, MC_SELF_TEST)
     int      buffer_SELF_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -463,7 +463,7 @@ UTEST(EP_MC, MC_ALARM_FLAG_RESET)
     int      buffer_ALARM_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;

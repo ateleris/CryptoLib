@@ -1,8 +1,14 @@
 name: CryptoLib
 
-on: 
+on:
+  push:
+    branches: ['**']
   pull_request:
     branches: [ main, dev ]
+  workflow_dispatch:
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: true
 
 jobs:
   #
@@ -14,7 +20,7 @@ jobs:
     container:
         image: ivvitc/cryptolib:20250108
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: apt-get update
     - name: Install Dependencies
@@ -34,7 +40,7 @@ jobs:
     container:
         image: ivvitc/cryptolib:20250108
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: apt-get update
     - name: Install Dependencies
@@ -47,60 +53,19 @@ jobs:
         export CFLAGS="-fprofile-arcs -ftest-coverage -fcondition-coverage -g"
         bash ${GITHUB_WORKSPACE}/support/scripts/build_internal.sh
 
+    - name: Generate Coverage Report
+      working-directory: ${{github.workspace}}
+      run: |
+        pip3 install --break-system-packages gcovr
+        mkdir -p coverage
+        gcovr --root . --exclude '.*/test/.*' --exclude '.*/support/.*' --html --html-details -o coverage/index.html --print-summary
 
-    # - name: Code-Coverage
-    #   working-directory: ${{github.workspace}}
-    #   run: make gcov
-
-    - name: Upload 
-      uses: codecov/codecov-action@v5
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: 'coverage/*.c.gcov'
-        verbose: true
-
-  #
-  # KMC Build
-  #
-  kmc_build:
-    # Container Setup
-    runs-on: ubuntu-latest
-    container:
-        image: ivvitc/cryptolib:20250108
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        repository: NASA-AMMOS/DCS
-        path: DCS
-        submodules: recursive
-    - name: setup python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - name: Set current branch
-      run: echo "BRANCH_NAME=$(echo ${{ github.head_ref || github.ref_name }})" >> $GITHUB_ENV
-    - name: Update
-      run: apt-get update
-    - name: Install Dependencies
-      run: apt-get install -y libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat python3 openjdk-17-jdk openjdk-17-jre cmake swig maven podman default-jdk
-    - name: Install Python Libraries
-      run: |
-        pip3 install --break-system-packages pycryptodome cffi invoke
-    - name: update Cryptolib
-      run: |
-        cd DCS/ammos-cryptolib
-        rm -rf CryptoLib
-        git clone --single-branch --branch $BRANCH_NAME https://github.com/nasa/CryptoLib.git
-    - name: add required jars
-      run: |
-        cd DCS/ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test
-        curl -LS https://repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar -o ./junit-4.13.2.jar 
-        curl -LS https://repo1.maven.org/maven2/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar -o ./hamcrest-2.2.jar
-    - name: build DCS
-      run: |
-        cd ./DCS
-        export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
-        ./kmc-resources/scripts/build.sh
+        name: coverage-internal
+        path: coverage/
+        if-no-files-found: warn
 
   #
   # Wolf Build
@@ -111,7 +76,7 @@ jobs:
     container:
         image: ivvitc/cryptolib:20250108
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: apt-get update
     - name: Install Dependencies
@@ -143,16 +108,6 @@ jobs:
         export CFLAGS="-fprofile-arcs -ftest-coverage -fcondition-coverage -g"
         bash ${GITHUB_WORKSPACE}/support/scripts/build_wolf.sh
     
-    # - name: Code-Coverage
-    #   working-directory: ${{github.workspace}}
-    #   run: make gcov
-
-    - name: Upload 
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: 'coverage/*.c.gcov'
-        verbose: true
       
   #
   # RHEL Build
@@ -163,7 +118,7 @@ jobs:
     container:
       image: rockylinux/rockylinux:9
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: yum update -y
     - name: Install Dependencies
@@ -196,16 +151,6 @@ jobs:
       working-directory: ${{github.workspace}}
       run: source ~/.bashrc && ${GITHUB_WORKSPACE}/support/scripts/build_rhel.sh
     
-    - name: Code-Coverage
-      working-directory: ${{github.workspace}}
-      run: source ~/.bashrc && make gcov
-
-    - name: Upload 
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: 'coverage/*.c.gcov'
-        verbose: true
 
   #
   # Ext. Proc. Build
@@ -216,7 +161,7 @@ jobs:
     container:
         image: ivvitc/cryptolib:20250108
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Update
       run: apt-get update
     - name: Install Dependencies
@@ -229,13 +174,16 @@ jobs:
         export CFLAGS="-fprofile-arcs -ftest-coverage -fcondition-coverage -g"
         bash ${GITHUB_WORKSPACE}/support/scripts/build_ep.sh
 
-    # - name: Code-Coverage
-    #   working-directory: ${{github.workspace}}
-    #   run: make gcov
+    - name: Generate Coverage Report
+      working-directory: ${{github.workspace}}
+      run: |
+        pip3 install --break-system-packages gcovr
+        mkdir -p coverage
+        gcovr --root . --exclude '.*/test/.*' --exclude '.*/support/.*' --html --html-details -o coverage/index.html --print-summary
 
-    - name: Upload 
-      uses: codecov/codecov-action@v4
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: 'coverage/*.c.gcov'
-        verbose: true
+        name: coverage-ep
+        path: coverage/
+        if-no-files-found: warn
