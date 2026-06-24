@@ -53,17 +53,16 @@ jobs:
         export CFLAGS="-fprofile-arcs -ftest-coverage -fcondition-coverage -g"
         bash ${GITHUB_WORKSPACE}/support/scripts/build_internal.sh
 
+    - name: Generate Coverage Report
+      working-directory: ${{github.workspace}}
+      run: make gcov
 
-    # - name: Code-Coverage
-    #   working-directory: ${{github.workspace}}
-    #   run: make gcov
-
-    - name: Upload 
-      uses: codecov/codecov-action@v5
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: 'coverage/*.c.gcov'
-        verbose: true
+        name: coverage-internal
+        path: coverage/
+        if-no-files-found: warn
 
   #
   # Wolf Build
@@ -106,16 +105,6 @@ jobs:
         export CFLAGS="-fprofile-arcs -ftest-coverage -fcondition-coverage -g"
         bash ${GITHUB_WORKSPACE}/support/scripts/build_wolf.sh
     
-    # - name: Code-Coverage
-    #   working-directory: ${{github.workspace}}
-    #   run: make gcov
-
-    - name: Upload 
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: 'coverage/*.c.gcov'
-        verbose: true
       
   #
   # RHEL Build
@@ -159,16 +148,6 @@ jobs:
       working-directory: ${{github.workspace}}
       run: source ~/.bashrc && ${GITHUB_WORKSPACE}/support/scripts/build_rhel.sh
     
-    - name: Code-Coverage
-      working-directory: ${{github.workspace}}
-      run: source ~/.bashrc && make gcov
-
-    - name: Upload 
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: 'coverage/*.c.gcov'
-        verbose: true
 
   #
   # Ext. Proc. Build
@@ -192,13 +171,13 @@ jobs:
         export CFLAGS="-fprofile-arcs -ftest-coverage -fcondition-coverage -g"
         bash ${GITHUB_WORKSPACE}/support/scripts/build_ep.sh
 
-    # - name: Code-Coverage
-    #   working-directory: ${{github.workspace}}
-    #   run: make gcov
+    - name: Generate Coverage Report
+      working-directory: ${{github.workspace}}
+      run: make gcov
 
-    - name: Upload 
-      uses: codecov/codecov-action@v5
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: 'coverage/*.c.gcov'
-        verbose: true
+        name: coverage-ep
+        path: coverage/
+        if-no-files-found: warn
