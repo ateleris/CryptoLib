@@ -4,6 +4,7 @@
 .vagrant
 .vscode
 .idea
+.vs/
 
 #
 # Packages and Build Files
