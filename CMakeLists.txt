@@ -15,7 +15,7 @@
 # NASA IV&V
 # jstar-development-team@mail.nasa.gov
 
-cmake_minimum_required(VERSION 3.14.0)
+cmake_minimum_required(VERSION 3.21)
 project(crypto C)
 
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
@@ -37,24 +37,24 @@ set(CRYPTO_CUSTOM_PATH_DEFAULT "../../crypto/custom")
 # For flags with the same prefix, one or more may be enabled
 #
 option(CODECOV "Code Coverage" OFF)
-option(CRYPTO_LIBGCRYPT "Cryptography Module - Libgcrypt" OFF)
+option(CRYPTO_LIBGCRYPT "Cryptography Module - Libgcrypt" ON)
 option(CRYPTO_KMC "Cryptography Module - KMC" OFF)
 option(CRYPTO_WOLFSSL "Cryptography Module - WolfSSL" OFF)
 option(CRYPTO_CUSTOM "Cryptography Module - CUSTOM" OFF)
 option(CRYPTO_CUSTOM_PATH "Cryptography Module - CUSTOM PATH" OFF)
-option(DEBUG "Debug" OFF)
+option(DEBUG "Debug" ON)
 option(ENABLE_FUZZING "Enable fuzz testing" OFF)
 option(KEY_CUSTOM "Key Module - Custom" OFF)
 option(KEY_CUSTOM_PATH "Custom Key Path" OFF)
-option(KEY_INTERNAL "Key Module - Internal" OFF)
+option(KEY_INTERNAL "Key Module - Internal" ON)
 option(KEY_KMC "Key Module - KMC" OFF)
 option(MC_CUSTOM "Monitoring and Control - Custom" OFF)
 option(MC_CUSTOM_PATH "Custom Monitoring and Control path" OFF)
 option(MC_DISABLED "Monitoring and Control - Disabled" OFF)
-option(MC_INTERNAL "Monitoring and Control - Internal" OFF)
+option(MC_INTERNAL "Monitoring and Control - Internal" ON)
 option(SA_CUSTOM "Security Association - Custom" OFF)
 option(SA_CUSTOM_PATH "Custom Security Association Path" OFF)
-option(SA_INTERNAL "Security Association - Internal" OFF)
+option(SA_INTERNAL "Security Association - Internal" ON)
 option(SA_MARIADB "Security Association - MariaDB" OFF)
 option(SUPPORT "Support" OFF)
 option(SYSTEM_INSTALL "SystemInstall" OFF)
@@ -63,7 +63,7 @@ option(SA_FILE "Save Security Association to File" OFF)
 option(KEY_VALIDATION "Validate existance of key duplication" OFF)
 option(KMC_MDB_RH "KMC-MDB-RedHat-Integration-Testing" OFF) #Disabled by default, enable with: -DKMC_MDB_RH=ON
 option(KMC_MDB_DB "KMC-MDB-Debian-Integration-Testing" OFF) #Disabled by default, enable with: -DKMC_MDB_DB=ON
-option(CRYPTO_EPROC "Enables the building and use of Extended Procedures" OFF) #Disabled by default, enable with -DCRYPTO_EPROC=ON
+option(CRYPTO_EPROC "Enables the building and use of Extended Procedures" ON) #Disabled by default, enable with -DCRYPTO_EPROC=ON
 option(STANDALONE_TCP "Enables TCP support for standalone" OFF)
 
 option(MAC_SIZE "The size of the max MAC buffer in bytes")

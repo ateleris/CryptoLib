@@ -112,6 +112,7 @@
 #define SPI_LEN             2 /* bytes */
 #define SPI_MIN             0
 #define SPI_MAX             NUM_SA - 1
+#define SDLS_EP_RESERVED_SPI 65535
 #define KEY_SIZE            512 /* bytes */
 #define KEY_ID_SIZE         8
 #define MKID_MAX            128
@@ -132,9 +133,11 @@
 #define CHALLENGE_SIZE      16            /* bytes */
 #define CHALLENGE_MAC_SIZE  16            /* bytes */
 #define BYTE_LEN            8             /* bits */
-#define CRYPTOLIB_APPID     128
+#define CRYPTOLIB_APPID     384
 #define MAX_IV_LEN          32 /* bytes */
 #define MAX_IZ_LEN          32
+
+#define EP_KEY_ID_LEN       4 /* bytes — CCSDS 355.1-B-1 §5.4 */
 
 // Configurable via build flags
 #ifndef NUM_SA
@@ -236,7 +239,7 @@
 
 // TC Behavior Defines
 #define TC_SDLS_EP_VCID \
-    4 // VCID which has SDLS PDUs (JPL uses VCIDs to determine TC type, there is no space packet layer with APIDs). Set
+    -1 // VCID which has SDLS PDUs (JPL uses VCIDs to determine TC type, there is no space packet layer with APIDs). Set
       // to -1 if uses SP APIDs.
 
 // TM Behavior Defines
