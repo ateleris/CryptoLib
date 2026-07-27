@@ -2464,4 +2464,56 @@ UTEST(TM_APPLY, TM_APPLY_Secondary_Hdr_One_Too_Big)
     Crypto_Shutdown();
 }
 
+UTEST(TM_APPLY_SECURITY, NOMINAL_TM_ENC_DEC)
+{
+     // Setup & Initialize CryptoLib
+    Crypto_Config_CryptoLib(KEY_TYPE_INTERNAL, MC_TYPE_INTERNAL, SA_TYPE_INMEMORY, CRYPTOGRAPHY_TYPE_LIBGCRYPT,
+                            IV_INTERNAL, CRYPTO_TC_CREATE_FECF_TRUE, TC_PROCESS_SDLS_PDUS_TRUE, TC_HAS_PUS_HDR,
+                            TC_IGNORE_SA_STATE_FALSE, TC_IGNORE_ANTI_REPLAY_FALSE, TC_UNIQUE_SA_PER_MAP_ID_FALSE,
+                            TC_CHECK_FECF_TRUE, 0x3F, SA_INCREMENT_NONTRANSMITTED_IV_TRUE);
+
+    GvcidManagedParameters_t params = {
+        0, 0x0003, 4, TM_NO_FECF, AOS_FHEC_NA, AOS_IZ_NA, 0, TM_SEGMENT_HDRS_NA, 40, TC_OCF_NA, 1
+    };
+    Crypto_Config_Add_Gvcid_Managed_Parameters(params);
+    
+    int status = Crypto_Init();
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+    uint8_t headers[] = { 0x00, 0x38, 0x00, 0x00, 0x18, 0x00 };
+    uint8_t security_header[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    uint8_t payload[] = { 0x08, 0x44, 0xC0, 0x01, 0x00, 0x0D, 0x00, 0x0F, 0x46, 0x43, 0x42, 0x39, 0x00, 0x00, 0x00, 0x00, 0x42, 0x45, 0x43, 0x4B };
+
+    uint8_t frame[250];
+    memset(frame, 0x00, sizeof(frame));
+    memcpy(&frame[0], &headers[0], sizeof(headers));
+    memcpy(&frame[sizeof(headers)], &security_header[0], sizeof(security_header));
+    memcpy(&frame[sizeof(headers)+sizeof(security_header)], &payload[0], sizeof(payload));
+
+    int frameLength = sizeof(headers) + sizeof(security_header) + sizeof(payload);
+
+    SecurityAssociation_t *testSA;
+    status = sa_if->sa_get_from_spi(20, &testSA);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+    testSA->sa_state = SA_OPERATIONAL;
+
+    testSA->iv_len = 12;
+    memset(testSA->iv, 0x00, 12);
+
+    status = Crypto_TM_ApplySecurity(frame, frameLength);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+
+    uint8_t *ptr_processed_frame = NULL;
+    uint16_t processed_tm_len;
+    status = Crypto_TM_ProcessSecurity(frame, frameLength, &ptr_processed_frame, &processed_tm_len);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+    int cpm = memcmp(frame, ptr_processed_frame, sizeof(frameLength));
+    ASSERT_EQ(cpm, 0);
+
+    free(ptr_processed_frame);
+
+}
+
 UTEST_MAIN();

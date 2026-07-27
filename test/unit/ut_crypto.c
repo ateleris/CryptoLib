@@ -122,7 +122,7 @@ UTEST(CRYPTO_C, PDU_SWITCH)
     // sdls_frame.tlv_pdu.hdr.pid = PID_OTAR;
     uint8_t *ingest = NULL;
 
-    TC_t tc_frame;
+    TC_t tc_frame = {0};
     // status = Crypto_PDU(ingest, &tc_frame);
     // ASSERT_EQ(status, CRYPTO_LIB_SUCCESS);
 
@@ -435,7 +435,7 @@ UTEST(CRYPTO_C, OTAR_0_140_142_FAIL_TEST)
     int      buffer_nist_key_len, buffer_OTAR_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;

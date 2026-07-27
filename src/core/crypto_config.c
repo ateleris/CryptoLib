@@ -182,7 +182,6 @@ int32_t Crypto_SC_Init(void)
     sa_ptr->ekid           = 128;
     sa_ptr->akid           = 128;
     sa_ptr->gvcid_blk.vcid = 6;
-
     return status;
 }
 

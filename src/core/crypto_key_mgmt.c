@@ -238,12 +238,11 @@ int32_t Crypto_Key_update(uint8_t state)
 { // Local variables
     SDLS_KEY_BLK_t packet;
     int            count    = 0;
-    int            pdu_keys = (sdls_frame.tlv_pdu.hdr.pdu_len / 8) / 2;
+    int            pdu_keys = (sdls_frame.tlv_pdu.hdr.pdu_len / 8) / EP_KEY_ID_LEN;
     int32_t        status;
     crypto_key_t  *ekp = NULL;
     int            x;
-    int            pdu_length   = sdls_frame.tlv_pdu.hdr.pdu_len / 8;
-    int            frame_length = sdls_frame.hdr.pkt_length;
+    int            pdu_length = sdls_frame.tlv_pdu.hdr.pdu_len / 8;
 
     if (key_if == NULL)
     {
@@ -256,8 +255,10 @@ int32_t Crypto_Key_update(uint8_t state)
         printf(KYEL "PDU Length not long enough to hold key values\n" RESET);
 #endif
     }
-    if ((state == KEY_DEACTIVATED || state == KEY_ACTIVE) &&
-        (pdu_length > SDLS_MAX_KEY_UPDATE_LEN || pdu_length > frame_length))
+    // NOTE: the SP packet-data-length field is unreliable for clear EP (left 0), so the
+    // PDU length is bounded only by SDLS_MAX_KEY_UPDATE_LEN here; the EP TLV length is
+    // already validated against the frame in Crypto_Process_Extended_Procedure_Pdu.
+    if ((state == KEY_DEACTIVATED || state == KEY_ACTIVE) && (pdu_length > SDLS_MAX_KEY_UPDATE_LEN))
     {
 #ifdef PDU_DEBUG
         printf(KRED "PDU Length Exceded!\n" RESET);
@@ -278,8 +279,12 @@ int32_t Crypto_Key_update(uint8_t state)
             return CRYPTO_LIB_ERROR;
         }
 
-        packet.kblk[x].kid = (sdls_frame.tlv_pdu.data[count] << BYTE_LEN) | (sdls_frame.tlv_pdu.data[count + 1]);
-        count              = count + 2;
+        // Key ID is a managed-length field (EP_KEY_ID_LEN octets, big-endian).
+        uint32_t kid = 0;
+        for (int b = 0; b < EP_KEY_ID_LEN; b++)
+            kid = (kid << BYTE_LEN) | (uint8_t)sdls_frame.tlv_pdu.data[count + b];
+        packet.kblk[x].kid = (uint16_t)kid;
+        count              = count + EP_KEY_ID_LEN;
 #ifdef PDU_DEBUG
         if (x != (pdu_keys - 1))
         {

@@ -1537,4 +1537,120 @@ UTEST(TC_APPLY_SECURITY, TC_HEAP_BUFFER_OVERFLOW_TEST_IV)
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, return_val);
 }
 
+UTEST(TC_APPLY_SECURITY, NOMINAL_TC_ENC_DEC)
+{
+    remove("sa_save_file.bin");
+
+     // Setup & Initialize CryptoLib
+    Crypto_Config_CryptoLib(KEY_TYPE_INTERNAL, MC_TYPE_INTERNAL, SA_TYPE_INMEMORY, CRYPTOGRAPHY_TYPE_LIBGCRYPT,
+                            IV_INTERNAL, CRYPTO_TC_CREATE_FECF_TRUE, TC_PROCESS_SDLS_PDUS_TRUE, TC_HAS_PUS_HDR,
+                            TC_IGNORE_SA_STATE_FALSE, TC_IGNORE_ANTI_REPLAY_FALSE, TC_UNIQUE_SA_PER_MAP_ID_FALSE,
+                            TC_CHECK_FECF_TRUE, 0x3F, SA_INCREMENT_NONTRANSMITTED_IV_TRUE);
+
+    GvcidManagedParameters_t params = {
+        0, 0x0003, 42, TC_NO_FECF, AOS_FHEC_NA, AOS_IZ_NA, 0, TC_NO_SEGMENT_HDRS, 1024, TC_OCF_NA, 1
+    };
+    Crypto_Config_Add_Gvcid_Managed_Parameters(params);
+    
+    int status = Crypto_Init();
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+    uint8_t headers[] = {0x20, 0x03, 0xA8, 0x0C, 0x00};
+    uint8_t payload[] = {0x18, 0x82, 0xC0, 0x00, 0x00, 0x01, 0x02, 0xA6};
+
+    uint8_t frame[250];
+    memset(frame, 0x00, sizeof(frame));
+    memcpy(&frame[0], &headers[0], sizeof(headers));
+    memcpy(&frame[sizeof(headers)], &payload[0], sizeof(payload));
+
+    int frameLength = sizeof(headers) + sizeof(payload);
+
+    SecurityAssociation_t *testSA;
+    status = sa_if->sa_get_from_spi(21, &testSA);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+    testSA->sa_state = SA_OPERATIONAL;
+
+    testSA->iv_len = 12;
+    memset(testSA->iv, 0x00, 12);
+
+    uint8_t* encFrame = NULL;
+    uint16_t encFrameLength = 0;
+
+    status = Crypto_TC_ApplySecurity(frame, frameLength, &encFrame, &encFrameLength);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+    // reset init vec for decryption
+    memset(testSA->iv, 0x00, 12);
+
+    TC_t* decTC = malloc(sizeof(uint8_t) * TC_SIZE);
+
+    int decFrameLength = encFrameLength;
+    status = Crypto_TC_ProcessSecurity(encFrame, &decFrameLength, decTC);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+    int cpm = memcmp(decTC->tc_pdu, payload, sizeof(payload));
+    ASSERT_EQ(cpm, 0);
+
+    free(encFrame);
+    free(decTC);
+}
+
+UTEST(TC_APPLY_SECURITY, NOMINAL_TC_AUTH_ENC_DEC)
+{
+    remove("sa_save_file.bin");
+
+    // Setup & Initialize CryptoLib
+    Crypto_Config_CryptoLib(KEY_TYPE_INTERNAL, MC_TYPE_INTERNAL, SA_TYPE_INMEMORY, CRYPTOGRAPHY_TYPE_LIBGCRYPT,
+                            IV_INTERNAL, CRYPTO_TC_CREATE_FECF_TRUE, TC_PROCESS_SDLS_PDUS_TRUE, TC_HAS_PUS_HDR,
+                            TC_IGNORE_SA_STATE_FALSE, TC_IGNORE_ANTI_REPLAY_FALSE, TC_UNIQUE_SA_PER_MAP_ID_FALSE,
+                            TC_CHECK_FECF_TRUE, 0x3F, SA_INCREMENT_NONTRANSMITTED_IV_TRUE);
+
+    GvcidManagedParameters_t params = {
+        0, 0x0003, 42, TC_NO_FECF, AOS_FHEC_NA, AOS_IZ_NA, 0, TC_NO_SEGMENT_HDRS, 1024, TC_OCF_NA, 1
+    };
+    Crypto_Config_Add_Gvcid_Managed_Parameters(params);
+
+    int status = Crypto_Init();
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+    uint8_t headers[] = {0x20, 0x03, 0xA8, 0x0C, 0x00};
+    uint8_t payload[] = {0x18, 0x82, 0xC0, 0x00, 0x00, 0x01, 0x02, 0xA6};
+
+    uint8_t frame[250];
+    memset(frame, 0x00, sizeof(frame));
+    memcpy(&frame[0], &headers[0], sizeof(headers));
+    memcpy(&frame[sizeof(headers)], &payload[0], sizeof(payload));
+
+    int frameLength = sizeof(headers) + sizeof(payload);
+
+    SecurityAssociation_t *testSA;
+    status = sa_if->sa_get_from_spi(22, &testSA);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+    testSA->sa_state = SA_OPERATIONAL;
+
+    testSA->iv_len = 12;
+    memset(testSA->iv, 0x00, 12);
+
+    uint8_t *encFrame       = NULL;
+    uint16_t encFrameLength = 0;
+
+    status = Crypto_TC_ApplySecurity(frame, frameLength, &encFrame, &encFrameLength);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+    // reset init vec for decryption
+    memset(testSA->iv, 0x00, 12);
+
+    TC_t *decTC = malloc(sizeof(uint8_t) * TC_SIZE);
+
+    int decFrameLength = encFrameLength;
+    status = Crypto_TC_ProcessSecurity(encFrame, &decFrameLength, decTC);
+    ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
+
+    int cpm = memcmp(decTC->tc_pdu, payload, sizeof(payload));
+    ASSERT_EQ(cpm, 0);
+
+    free(encFrame);
+    free(decTC);
+}
+
 UTEST_MAIN();

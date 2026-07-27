@@ -567,8 +567,65 @@ int32_t sa_populate(void)
     sa[15].gvcid_blk.vcid  = 7;
     sa[15].gvcid_blk.mapid = TYPE_TC;
 
-    int32_t status = sa_perform_save(&sa[0]);
-    return status;
+    // Test SA (used by ut_tm_apply NOMINAL_TM_ENC_DEC). TM, SCID, VCID 4, clear mode.
+    sa[20].spi             = 20;
+    sa[20].sa_state        = SA_KEYED;
+    sa[20].est             = 0;
+    sa[20].ast             = 0;
+    sa[20].shivf_len       = 12;
+    sa[20].iv_len          = 12;
+    sa[20].shsnf_len       = 0;
+    sa[20].arsnw           = 5;
+    sa[20].arsnw_len       = 1;
+    sa[20].arsn_len        = 0;
+    sa[20].gvcid_blk.tfvn  = 0;
+    sa[20].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[20].gvcid_blk.vcid  = 4;
+    sa[20].gvcid_blk.mapid = TYPE_TM;
+
+    // Test SAs (used by ut_tc_apply NOMINAL_TC_ENC_DEC / NOMINAL_TC_AUTH_ENC_DEC).
+    // TC, SCID, VCID 42, AES-GCM auth+enc; left SA_KEYED so each test activates its own.
+    sa[21].spi             = 21;
+    sa[21].sa_state        = SA_KEYED;
+    sa[21].ekid            = 130;
+    sa[21].akid            = 130;
+    sa[21].ecs_len         = 1;
+    sa[21].ecs             = CRYPTO_CIPHER_AES256_GCM;
+    sa[21].est             = 1;
+    sa[21].ast             = 1;
+    sa[21].iv_len          = 12;
+    sa[21].shivf_len       = 12;
+    sa[21].arsn_len        = 0;
+    sa[21].arsnw_len       = 1;
+    sa[21].arsnw           = 5;
+    sa[21].stmacf_len      = 16;
+    sa[21].abm_len         = ABM_SIZE;
+    sa[21].gvcid_blk.tfvn  = 0;
+    sa[21].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[21].gvcid_blk.vcid  = 42;
+    sa[21].gvcid_blk.mapid = TYPE_TC;
+
+    sa[22].spi             = 22;
+    sa[22].sa_state        = SA_KEYED;
+    sa[22].ekid            = 130;
+    sa[22].akid            = 130;
+    sa[22].ecs_len         = 1;
+    sa[22].ecs             = CRYPTO_CIPHER_AES256_GCM;
+    sa[22].est             = 1;
+    sa[22].ast             = 1;
+    sa[22].iv_len          = 12;
+    sa[22].shivf_len       = 12;
+    sa[22].arsn_len        = 0;
+    sa[22].arsnw_len       = 1;
+    sa[22].arsnw           = 5;
+    sa[22].stmacf_len      = 16;
+    sa[22].abm_len         = ABM_SIZE;
+    sa[22].gvcid_blk.tfvn  = 0;
+    sa[22].gvcid_blk.scid  = SCID & 0x3FF;
+    sa[22].gvcid_blk.vcid  = 42;
+    sa[22].gvcid_blk.mapid = TYPE_TC;
+
+    return sa_perform_save(&sa[0]);
 }
 
 /**
@@ -740,6 +797,10 @@ static int32_t sa_close(void)
 static int32_t sa_get_from_spi(uint16_t spi, SecurityAssociation_t **security_association)
 {
     int32_t status = CRYPTO_LIB_SUCCESS;
+    if (spi == SDLS_EP_RESERVED_SPI)
+    {
+        spi = SPI_MAX;
+    }
     // Check if spi index in sa array
     if (spi >= NUM_SA)
     {
@@ -1022,12 +1083,12 @@ static int32_t sa_get_operational_sa_from_gvcid(uint8_t tfvn, uint16_t scid, uin
  **/
 static int32_t sa_start(TC_t *tc_frame)
 {
+    (void)tc_frame; // unused in this case
     // Local variables
     uint8_t        count = 0;
     uint16_t       spi   = 0x0000;
     crypto_gvcid_t gvcid;
     int            x;
-    int            i;
     int            num_gvcid = (((sdls_frame.tlv_pdu.hdr.pdu_len / 8) - 2) / 4);
 
     printf("\nParsed GVCID: %d\n", num_gvcid);
@@ -1051,7 +1112,7 @@ static int32_t sa_start(TC_t *tc_frame)
         {
             count = 2;
 
-            for (x = 0; x <= num_gvcid; x++)
+            for (x = 0; x < num_gvcid; x++)
             { // Read in GVCID
                 gvcid.tfvn = (sdls_frame.tlv_pdu.data[count] >> 4);
                 gvcid.scid = (sdls_frame.tlv_pdu.data[count] << 12) | (sdls_frame.tlv_pdu.data[count + 1] << 4) |
@@ -1071,53 +1132,17 @@ static int32_t sa_start(TC_t *tc_frame)
                 count += 4;
                 printf("\tMAPID: %d\n", gvcid.mapid);
 
-                // TC
-                if (gvcid.vcid != tc_frame->tc_header.vcid)
-                { // Clear all GVCIDs for provided SPI
-                    if (gvcid.mapid == TYPE_TC)
-                    {
-                        sa[spi].gvcid_blk.tfvn  = 0;
-                        sa[spi].gvcid_blk.scid  = 0;
-                        sa[spi].gvcid_blk.vcid  = 0;
-                        sa[spi].gvcid_blk.mapid = 0;
-                    }
-                    // Write channel to SA
-                    if (gvcid.mapid != TYPE_MAP)
-                    { // TC
-                        sa[spi].gvcid_blk.tfvn  = gvcid.tfvn;
-                        sa[spi].gvcid_blk.scid  = gvcid.scid;
-                        sa[spi].gvcid_blk.mapid = gvcid.mapid;
-                    }
-                    else
-                    {
-                        // TODO: Handle TYPE_MAP
-                    }
+                // CCSDS 355.1-B-1 §3.3.3.1.3.4(d)
+                if (gvcid.mapid != TYPE_MAP)
+                {
+                    sa[spi].gvcid_blk.tfvn  = gvcid.tfvn;
+                    sa[spi].gvcid_blk.scid  = gvcid.scid;
+                    sa[spi].gvcid_blk.vcid  = gvcid.vcid;
+                    sa[spi].gvcid_blk.mapid = gvcid.mapid;
                 }
-                // TM
-                if (gvcid.vcid != tm_frame_pri_hdr.vcid) // TODO Check this tm_frame.tm_header.vcid)
-                {                                        // Clear all GVCIDs for provided SPI
-                    if (gvcid.mapid == TYPE_TM)
-                    {
-                        for (i = 0; i < NUM_GVCID; i++) // This is looping
-                        {                               // TM
-                            sa[spi].gvcid_blk.tfvn  = 0;
-                            sa[spi].gvcid_blk.scid  = 0;
-                            sa[spi].gvcid_blk.vcid  = 0;
-                            sa[spi].gvcid_blk.mapid = 0;
-                        }
-                    }
-                    // Write channel to SA
-                    if (gvcid.mapid != TYPE_MAP)
-                    {                                          // TM
-                        sa[spi].gvcid_blk.tfvn  = gvcid.tfvn;  // Hope for the best
-                        sa[spi].gvcid_blk.scid  = gvcid.scid;  // Hope for the best
-                        sa[spi].gvcid_blk.vcid  = gvcid.vcid;  // Hope for the best
-                        sa[spi].gvcid_blk.mapid = gvcid.mapid; // Hope for the best
-                    }
-                    else
-                    {
-                        // TODO: Handle TYPE_MAP
-                    }
+                else
+                {
+                    // TODO: Handle TYPE_MAP (Global MAP ID)
                 }
 
 #ifdef PDU_DEBUG
@@ -1294,30 +1319,47 @@ static int32_t sa_rekey(TC_t *tc_frame)
                        (sdls_frame.tlv_pdu.hdr.sg << 4) | sdls_frame.tlv_pdu.hdr.pid;
 
         if (sa[spi].sa_state == SA_UNKEYED)
-        { // Encryption Key
-            sa[spi].ekid =
-                ((uint8_t)sdls_frame.tlv_pdu.data[count] << BYTE_LEN) | (uint8_t)sdls_frame.tlv_pdu.data[count + 1];
-            count = count + 2;
+        {
+            // CCSDS 355.1-B-1 §5.5.1.4.2.2
+            if (sa[spi].est == 1)
+            {
+                // Key ID is a managed-length field (EP_KEY_ID_LEN octets, big-endian).
+                uint32_t ekid = 0;
+                for (int k = 0; k < EP_KEY_ID_LEN; k++)
+                    ekid = (ekid << BYTE_LEN) | (uint8_t)sdls_frame.tlv_pdu.data[count + k];
+                sa[spi].ekid = (uint16_t)ekid;
+                count         = count + EP_KEY_ID_LEN;
+            }
+            if (sa[spi].ast == 1)
+            {
+                uint32_t akid = 0;
+                for (int k = 0; k < EP_KEY_ID_LEN; k++)
+                    akid = (akid << BYTE_LEN) | (uint8_t)sdls_frame.tlv_pdu.data[count + k];
+                sa[spi].akid = (uint16_t)akid;
+                count         = count + EP_KEY_ID_LEN;
+            }
 
-            // Anti-Replay Seq Num
+            if (sa[spi].est == 1 && sa[spi].ast == 0)
+                sa[spi].akid = sa[spi].ekid;
+            if (sa[spi].ast == 1 && sa[spi].est == 0)
+                sa[spi].ekid = sa[spi].akid;
+
+            // ARSN
+            for (x = 0; x < sa[spi].arsn_len; x++)
+            {
+                sa[spi].arsn[x] = (uint8_t)sdls_frame.tlv_pdu.data[count++];
+            }
+
+            // IV
 #ifdef PDU_DEBUG
             printf("SPI %d IV updated to: 0x", spi);
 #endif
-            if (sa[spi].shivf_len > 0)
-            { // Set IV - authenticated encryption
-                for (x = count; x < (sa[spi].shivf_len + count); x++)
-                {
-                    // TODO: Uncomment once fixed in ESA implementation
-                    // TODO: Assuming this was fixed...
-                    *(sa[spi].iv + x - count) = (uint8_t)sdls_frame.tlv_pdu.data[x];
+            for (x = 0; x < sa[spi].shivf_len; x++)
+            {
+                sa[spi].iv[x] = (uint8_t)sdls_frame.tlv_pdu.data[count++];
 #ifdef PDU_DEBUG
-                    printf("%02x", sdls_frame.tlv_pdu.data[x]);
+                printf("%02x", sa[spi].iv[x]);
 #endif
-                }
-            }
-            else
-            { // Set SN
-              // TODO
             }
 #ifdef PDU_DEBUG
             printf("\n");
@@ -1326,7 +1368,7 @@ static int32_t sa_rekey(TC_t *tc_frame)
             // Change to keyed state
             sa[spi].sa_state = SA_KEYED;
 #ifdef PDU_DEBUG
-            printf("SPI %d changed to KEYED state with encrypted Key ID %d. \n", spi, sa[spi].ekid);
+            printf("SPI %d changed to KEYED state (ekid %d, akid %d).\n", spi, sa[spi].ekid, sa[spi].akid);
 #endif
         }
         else
@@ -1466,8 +1508,8 @@ static int32_t sa_create(TC_t *tc_frame)
         {
             temp_sa->ecs = ((uint8_t)sdls_frame.tlv_pdu.data[count++]);
         }
-        temp_sa->shivf_len = ((uint8_t)sdls_frame.tlv_pdu.data[count++]);
-        for (x = 0; x < temp_sa->shivf_len; x++)
+        temp_sa->iv_len = ((uint8_t)sdls_frame.tlv_pdu.data[count++]);
+        for (x = 0; x < temp_sa->iv_len; x++)
         {
             temp_sa->iv[x] = ((uint8_t)sdls_frame.tlv_pdu.data[count++]);
         }
@@ -1477,7 +1519,7 @@ static int32_t sa_create(TC_t *tc_frame)
             temp_sa->acs = ((uint8_t)sdls_frame.tlv_pdu.data[count++]);
         }
         temp_sa->abm_len =
-            (uint8_t)((sdls_frame.tlv_pdu.data[count] << BYTE_LEN) | (sdls_frame.tlv_pdu.data[count + 1]));
+            (uint16_t)((sdls_frame.tlv_pdu.data[count] << BYTE_LEN) | (sdls_frame.tlv_pdu.data[count + 1]));
         count = count + 2;
         for (x = 0; x < temp_sa->abm_len; x++)
         {
@@ -1491,7 +1533,8 @@ static int32_t sa_create(TC_t *tc_frame)
         temp_sa->arsnw_len = ((uint8_t)sdls_frame.tlv_pdu.data[count++]);
         for (x = 0; x < temp_sa->arsnw_len; x++)
         {
-            temp_sa->arsnw = temp_sa->arsnw | (((uint8_t)sdls_frame.tlv_pdu.data[count++]) << (temp_sa->arsnw_len - x));
+            temp_sa->arsnw =
+                temp_sa->arsnw | (((uint8_t)sdls_frame.tlv_pdu.data[count++]) << ((temp_sa->arsnw_len - 1 - x) * 8));
         }
 
         // Set state to unkeyed

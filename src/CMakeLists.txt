@@ -138,25 +138,27 @@ if(CRYPTOLIB_EMBEDDED)
     set_target_properties(${CRYPTOLIB_TARGET} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
     target_include_directories(${CRYPTOLIB_TARGET} PUBLIC ../include)
 elseif(DEFINED CFE_SYSTEM_PSPNAME)
+    set(CRYPTOLIB_TARGET crypto)
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${TGTSYS_${SYSVAR}}/${INSTALL_SUBDIR}")
     add_cfe_app(crypto ${LIB_SRC_FILES})
     target_include_directories(crypto PUBLIC ../include)
-else() 
+else()
     # Standalone build
+    set(CRYPTOLIB_TARGET crypto)
     add_library(crypto SHARED ${LIB_SRC_FILES})
     target_include_directories(crypto PUBLIC ../include)
 endif()
 
 if(CRYPTO_LIBGCRYPT)
-    target_link_libraries(crypto gcrypt)
+    target_link_libraries(${CRYPTOLIB_TARGET} PRIVATE gcrypt)
 endif()
 
 if(CRYPTO_KMC)
-    target_link_libraries(crypto curl)
+    target_link_libraries(${CRYPTOLIB_TARGET} PRIVATE curl)
 endif()
 
 if(CRYPTO_WOLFSSL)
-    target_link_libraries(crypto wolfssl)
+    target_link_libraries(${CRYPTOLIB_TARGET} PRIVATE wolfssl)
 endif()
 
 if(SA_MARIADB)
@@ -164,8 +166,8 @@ if(SA_MARIADB)
             OUTPUT_VARIABLE MYSQL_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
     execute_process(COMMAND mysql_config --libs
             OUTPUT_VARIABLE MYSQL_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
-    target_compile_options(crypto PUBLIC ${MYSQL_CFLAGS})
-    target_link_libraries(crypto ${MYSQL_LIBS})
+    target_compile_options(${CRYPTOLIB_TARGET} PUBLIC ${MYSQL_CFLAGS})
+    target_link_libraries(${CRYPTOLIB_TARGET} PRIVATE ${MYSQL_LIBS})
 endif()
 
 # Header export, shared-library naming and install rules only apply when
@@ -186,7 +188,7 @@ if(NOT CRYPTOLIB_EMBEDDED)
             )
 
     if(DEFINED CFE_SYSTEM_PSPNAME)
-        install(TARGETS crypto 
+        install(TARGETS crypto
                 DESTINATION ${CMAKE_INSTALL_PREFIX}/${TGTSYS_${SYSVAR}}/${INSTALL_SUBDIR}
                 PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
     else()

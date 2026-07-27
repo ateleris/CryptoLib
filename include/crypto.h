@@ -267,7 +267,7 @@ int32_t Crypto_Check_Anti_Replay_GCM(SecurityAssociation_t *sa_ptr, uint8_t *iv,
                                      uint8_t increment_nontransmitted);
 
 // SDLS Related Functions
-extern uint8_t Crypto_Prep_Reply(uint8_t *ingest, uint8_t appID);
+extern uint8_t Crypto_Prep_Reply(uint8_t *ingest, uint16_t appID);
 extern void    Crypto_Print_Sdls_Ep_Reply(void);
 extern int32_t Crypto_Get_Sdls_Ep_Reply(uint8_t *buffer, uint16_t *length);
 
@@ -305,6 +305,8 @@ void clean_akref(SecurityAssociation_t *sa);
 
 // Determine Payload Data Unit
 int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t *tc_sdls_processed_frame, uint8_t *ingest, uint16_t len_ingest);
+
+int32_t Crypto_Process_Clear_TC_EP(uint8_t *frame, int len);
 int32_t Crypto_PDU(uint8_t *ingest, TC_t *tc_frame);
 int32_t Crypto_SG_KEY_MGMT(uint8_t *ingest, TC_t *tc_frame);
 int32_t Crypto_SG_SA_MGMT(uint8_t *ingest, TC_t *tc_frame);
@@ -321,6 +323,7 @@ int32_t Crypto_Get_TM_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, 
 int32_t Crypto_Get_AOS_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid, uint8_t vcid,
                                                     AOSGvcidManagedParameters_t *managed_parameters_in,
                                                     AOSGvcidManagedParameters_t *managed_parameters_out);
+
 // Project-wide support functions
 extern int32_t crypto_deep_copy_string(char *src_string, char **dst_string);
 
@@ -335,6 +338,7 @@ int32_t Crypto_is_safe_path(const char *s);
 extern CCSDS_t          sdls_frame;
 extern SDLS_KEYV_RPLY_t sdls_ep_keyv_reply;
 extern uint8_t          sdls_ep_reply[TC_MAX_FRAME_SIZE];
+extern uint8_t          sdls_ep_reply_pending; // 1 when sdls_ep_reply holds a fresh, unread reply
 // extern TM_t tm_frame;
 // extern uint8_t                  tm_frame[1786];
 extern TM_FramePrimaryHeader_t  tm_frame_pri_hdr;

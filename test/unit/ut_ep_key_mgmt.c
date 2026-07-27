@@ -38,7 +38,7 @@ UTEST(EP_KEY_MGMT, OTAR_0_140_142)
     int      buffer_nist_key_len, buffer_OTAR_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -106,7 +106,7 @@ UTEST(EP_KEY_MGMT, ACTIVATE_141_142)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_ACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -181,7 +181,7 @@ UTEST(EP_KEY_MGMT, DEACTIVATE_142)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_DEACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -254,7 +254,7 @@ UTEST(EP_KEY_MGMT, INVENTORY_132_134)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_INVENTORY_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -347,7 +347,7 @@ UTEST(EP_KEY_MGMT, VERIFY_132_134)
                               "6302465bc6d5091a29957eebed35c00a6ed8";
     // TRUTH PDU
     char *buffer_TRUTH_RESPONSE_h =
-        "0880D03A0068197F0B008402E00084000000000000000000000001D8EAA795AFFAA0E951BB6CF0116192E16B1977D6723E92E01123CCEF"
+        "0980D03A0068197F0B008402E00084000000000000000000000001D8EAA795AFFAA0E951BB6CF0116192E16B1977D6723E92E01123CCEF"
         "548E2885008600000000000000000000000275C47F30CA26E64AF30C19EBFFE0B314849133E138AC65BC2806E520A90C96A8";
 
     uint8_t *buffer_nist_key_b, *buffer_VERIFY_b, *buffer_TRUTH_RESPONSE_b     = NULL;
@@ -486,7 +486,7 @@ UTEST(EP_KEY_MGMT, OTAR_0_140_142_MK_NOT_ACTIVE)
     int      buffer_nist_key_len, buffer_OTAR_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -588,7 +588,7 @@ UTEST(EP_KEY_MGMT, OTAR_0_140_142_BAD_DECRYPT)
     int      buffer_nist_key_len, buffer_OTAR_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -659,7 +659,7 @@ UTEST(EP_KEY_MGMT, DEACTIVATE_142_NO_PUS)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_DEACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -740,7 +740,7 @@ UTEST(EP_KEY_MGMT, DEACTIVATE_142_NO_PUS_BAD_TLV)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_DEACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -817,7 +817,7 @@ UTEST(EP_KEY_MGMT, DEACTIVATE_142_PUS_BAD_TLV)
     int      buffer_nist_iv_len, buffer_nist_key_len, buffer_DEACTIVATE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -931,7 +931,7 @@ UTEST(EP_KEY_MGMT, TLV_KEY_DEACTIVATE_TESTS)
         buffer_TLV_MAX_PLUS_len, buffer_TLV_ONE_len, buffer_TLV_ZERO_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -1065,7 +1065,7 @@ UTEST(EP_KEY_MGMT, TLV_KEY_VERIFY_TESTS)
                             //  1x Key Verify
                             "000971fc3ad5b1c36ad56bd5a5432315cdab";
     // TRUTH PDU
-    char *buffer_TRUTH_RESPONSE_h = "0880D03A0206197F0B00840FD000800000000000000000000000017359FCF378204BCED13B4EE9CEB3"
+    char *buffer_TRUTH_RESPONSE_h = "0980D03A0206197F0B00840FD000800000000000000000000000017359FCF378204BCED13B4EE9CEB3"
                                     "E50117F651040DDE44BAB565420A9F9903930081"
                                     "000000000000000000000002C59CBBDDBE2CE97DF86F0526F1894DE590DEB467B6BD3265F22C01B162"
                                     "AB22820082000000000000000000000003367BBE"

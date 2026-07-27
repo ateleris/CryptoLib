@@ -44,6 +44,7 @@ CFS_MODULE_DECLARE_LIB(crypto);
 // SDLS Replies
 SDLS_KEYV_RPLY_t sdls_ep_keyv_reply; // Reply block for challenged keys
 uint8_t          sdls_ep_reply[TC_MAX_FRAME_SIZE];
+uint8_t          sdls_ep_reply_pending = 0; // set when a reply has been built, cleared when retrieved
 CCSDS_t          sdls_frame;
 // TM
 // TM_t                     tm_frame;                    // TM Global Frame
@@ -359,7 +360,7 @@ int32_t Crypto_window(uint8_t *actual, uint8_t *expected, int length, int window
  *
  * CCSDS Compliance: CCSDS 355.0-B-2 Section 7.4 (Management)
  **/
-uint8_t Crypto_Prep_Reply(uint8_t *reply, uint8_t appID)
+uint8_t Crypto_Prep_Reply(uint8_t *reply, uint16_t appID)
 {
     uint8_t count = 0;
     if (reply == NULL)
@@ -375,7 +376,7 @@ uint8_t Crypto_Prep_Reply(uint8_t *reply, uint8_t appID)
 
     // Fill reply with reply header
     reply[count++] = (sdls_frame.hdr.pvn << 5) | (sdls_frame.hdr.type << 4) | (sdls_frame.hdr.shdr << 3) |
-                     ((sdls_frame.hdr.appID & 0x700 >> 8));
+                     ((sdls_frame.hdr.appID & 0x700) >> 8);
     reply[count++] = (sdls_frame.hdr.appID & 0x00FF);
     reply[count++] = (sdls_frame.hdr.seq << 6) | ((sdls_frame.hdr.pktid & 0x3F00) >> 8);
     reply[count++] = (sdls_frame.hdr.pktid & 0x00FF);
@@ -398,6 +399,7 @@ uint8_t Crypto_Prep_Reply(uint8_t *reply, uint8_t appID)
     reply[count++] = (sdls_frame.tlv_pdu.hdr.pdu_len & 0x00FF);
 
     sdls_frame.tlv_pdu.hdr.type = 0;
+    sdls_ep_reply_pending       = 1;
     return count;
 }
 
@@ -423,6 +425,12 @@ int32_t Crypto_Get_Sdls_Ep_Reply(uint8_t *buffer, uint16_t *length)
         return status;
     }
 
+    if (sdls_ep_reply_pending == 0)
+    {
+        *length = 0;
+        return status;
+    }
+
     pkt_length = sdls_frame.hdr.pkt_length + 1;
 
     // Sanity Check on length
@@ -436,6 +444,8 @@ int32_t Crypto_Get_Sdls_Ep_Reply(uint8_t *buffer, uint16_t *length)
 
     // Update length externally
     *length = pkt_length;
+
+    sdls_ep_reply_pending = 0;
 
     return status;
 }
@@ -1026,7 +1036,7 @@ int32_t Crypto_Get_AOS_Managed_Parameters_For_Gvcid(uint8_t tfvn, uint16_t scid,
  * @note Allows EPs to be processed one of two ways.
  * @note - 1) By using a packet layer with APID 0x1980
  * @note - 2) By using a defined Virtual Channel ID
- * @note Requires this to happen on either SPI_MIN (0) or SPI_MAX (configurable)
+ * @note Requires this to happen on either SPI_MIN (0) or the CCSDS reserved SDLS_EP_RESERVED_SPI (65535)
  *
  * CCSDS Compliance: CCSDS 355.0-B-2 Section 3.2 (Protocol Description)
  **/
@@ -1041,17 +1051,19 @@ int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t *tc_sdls_processed_frame, uin
     {
         status = CRYPTO_LIB_ERR_NULL_BUFFER;
     }
-    // Validate correct SA for EPs
+    // Validate correct SA for EPs.
+    // Per CCSDS 355.1-B-1 (4.3.1.2) EP service PDUs use the reserved SPIs: all-zeros (0) or all-ones (65535).
     uint8_t valid_ep_sa = CRYPTO_FALSE;
     if ((tc_sdls_processed_frame->tc_sec_header.spi == SPI_MIN) ||
-        (tc_sdls_processed_frame->tc_sec_header.spi == SPI_MAX))
+        (tc_sdls_processed_frame->tc_sec_header.spi == SDLS_EP_RESERVED_SPI))
     {
         valid_ep_sa = CRYPTO_TRUE;
     }
     if (status == CRYPTO_LIB_SUCCESS)
     {
         // Check for specific App ID for EPs - the CryptoLib Apid in this case
-        if ((tc_sdls_processed_frame->tc_pdu[0] == 0x19) && (tc_sdls_processed_frame->tc_pdu[1] == 0x80))
+        if (((((uint16_t)(tc_sdls_processed_frame->tc_pdu[0] & 0x07)) << 8) | tc_sdls_processed_frame->tc_pdu[1]) ==
+            CRYPTOLIB_APPID)
         {
 
 #ifdef CRYPTO_EPROC
@@ -1072,6 +1084,16 @@ int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t *tc_sdls_processed_frame, uin
                     ((tc_sdls_processed_frame->tc_pdu[2] & 0x3F) << 8) | tc_sdls_processed_frame->tc_pdu[3];
                 sdls_frame.hdr.pkt_length =
                     (tc_sdls_processed_frame->tc_pdu[4] << 8) | tc_sdls_processed_frame->tc_pdu[5];
+
+                if (((uint32_t)CCSDS_HDR_SIZE + sdls_frame.hdr.pkt_length + 1) >
+                    ((uint32_t)tc_sdls_processed_frame->tc_header.fl + 1))
+                {
+#ifdef PDU_DEBUG
+                    printf(KRED "SP packet-data-length field (0x%04X) exceeds TC frame length\n" RESET,
+                           sdls_frame.hdr.pkt_length);
+#endif
+                    return CRYPTO_LIB_ERR_BAD_TLV_LENGTH;
+                }
 
                 // Using PUS Header
                 if (crypto_config_tc.has_pus_hdr == TC_HAS_PUS_HDR)
@@ -1125,9 +1147,10 @@ int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t *tc_sdls_processed_frame, uin
                         return CRYPTO_LIB_ERR_BAD_TLV_LENGTH;
                     }
 
-                    if (sdls_frame.hdr.pkt_length <= TLV_DATA_SIZE)
+                    uint16_t tlv_bytes = sdls_frame.tlv_pdu.hdr.pdu_len / 8;
+                    if (tlv_bytes <= TLV_DATA_SIZE)
                     {
-                        for (int x = 13; x < (13 + sdls_frame.hdr.pkt_length); x++)
+                        for (int x = 13; x < (13 + tlv_bytes); x++)
                         {
                             sdls_frame.tlv_pdu.data[x - 13] = tc_sdls_processed_frame->tc_pdu[x];
                         }
@@ -1165,9 +1188,11 @@ int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t *tc_sdls_processed_frame, uin
 #endif
                         return CRYPTO_LIB_ERR_BAD_TLV_LENGTH;
                     }
-                    if ((sdls_frame.hdr.pkt_length < TLV_DATA_SIZE) && (sdls_frame.hdr.pkt_length < max_tlv))
+
+                    uint16_t tlv_bytes = sdls_frame.tlv_pdu.hdr.pdu_len / 8;
+                    if ((tlv_bytes < TLV_DATA_SIZE) && (tlv_bytes <= max_tlv))
                     {
-                        for (int x = 9; x < (9 + sdls_frame.hdr.pkt_length); x++)
+                        for (int x = 9; x < (9 + tlv_bytes); x++)
                         {
                             sdls_frame.tlv_pdu.data[x - 9] = tc_sdls_processed_frame->tc_pdu[x];
                         }
@@ -1250,6 +1275,79 @@ int32_t Crypto_Process_Extended_Procedure_Pdu(TC_t *tc_sdls_processed_frame, uin
     }
     return status;
 } // End Process SDLS PDU
+
+/**
+ * @brief Function: Crypto_Process_Clear_TC_EP
+ * Process a CLEAR (non-SDLS) TC frame carrying an SDLS EP command on a clear GVCID.
+ * No SPI/IV/MAC present: the Space Packet header sits directly after the (optional)
+ * segment header. Validates the FECF, sets the reserved EP SPI (0), and dispatches via
+ * Crypto_Process_Extended_Procedure_Pdu. Shared by CI_LAB and the ground CryptoLib binding.
+ **/
+int32_t Crypto_Process_Clear_TC_EP(uint8_t *frame, int len)
+{
+    int32_t status = CRYPTO_LIB_SUCCESS;
+
+    if (frame == NULL || len < 6)
+    {
+        return CRYPTO_LIB_ERR_INPUT_FRAME_TOO_SHORT_FOR_TC_STANDARD;
+    }
+
+    // TC primary header (clear frame — no SDLS security header follows it).
+    uint8_t  tfvn  = (frame[0] & 0xC0) >> 6;
+    uint16_t scid  = ((uint16_t)(frame[0] & 0x03) << 8) | frame[1];
+    uint8_t  vcid  = ((frame[2] & 0xFC) >> 2) & crypto_config_tc.vcid_bitmask;
+    uint16_t fl    = ((uint16_t)(frame[2] & 0x03) << 8) | frame[3];
+    int      total = fl + 1; // frame length field; any trailing fill (e.g. 0x55) is ignored
+    if (total < 6 || total > len)
+    {
+        return CRYPTO_LIB_ERR_TC_FRAME_LENGTH_MISMATCH;
+    }
+
+    // Managed parameters give segment-header / FECF presence for this GVCID.
+    TCGvcidManagedParameters_t mp;
+    status = Crypto_Get_TC_Managed_Parameters_For_Gvcid(tfvn, scid, vcid, tc_gvcid_managed_parameters_array, &mp);
+    if (status != CRYPTO_LIB_SUCCESS)
+    {
+        mc_if->mc_log(status);
+        return status;
+    }
+
+    uint8_t seg_len  = (mp.has_segmentation_hdr == TC_HAS_SEGMENT_HDRS) ? 1 : 0;
+    uint8_t fecf_len = (mp.has_fecf == TC_HAS_FECF) ? 2 : 0;
+
+    // Validate the FECF over the frame body (excludes the 2 FECF octets; trailing fill
+    // is excluded because the calc is bounded by 'total').
+    if (fecf_len && crypto_config_tc.crypto_check_fecf == TC_CHECK_FECF_TRUE)
+    {
+        uint16_t received   = ((uint16_t)frame[total - 2] << 8) | frame[total - 1];
+        uint16_t calculated = Crypto_Calc_FECF(frame, total - 2);
+        if (received != calculated)
+        {
+            mc_if->mc_log(CRYPTO_LIB_ERR_INVALID_FECF);
+            return CRYPTO_LIB_ERR_INVALID_FECF;
+        }
+    }
+
+    // Build a minimal processed frame: the Space Packet IS the EP payload (no SPI/IV).
+    TC_t tc;
+    memset(&tc, 0, sizeof(tc));
+    tc.tc_header.tfvn    = tfvn;
+    tc.tc_header.scid    = scid;
+    tc.tc_header.vcid    = vcid;
+    tc.tc_header.fl      = fl;
+    tc.tc_sec_header.spi = SPI_MIN; // reserved EP SPI -> valid_ep_sa
+
+    int pdu_off = TC_FRAME_HEADER_SIZE + seg_len; // 5 + optional segment header
+    int pdu_len = total - pdu_off - fecf_len;
+    if (pdu_len < 6) // need at least a Space Packet header
+    {
+        return CRYPTO_LIB_ERR_INPUT_FRAME_TOO_SHORT_FOR_TC_STANDARD;
+    }
+    tc.tc_pdu_len = (uint16_t)pdu_len;
+    memcpy(tc.tc_pdu, &frame[pdu_off], pdu_len);
+
+    return Crypto_Process_Extended_Procedure_Pdu(&tc, frame, (uint16_t)total);
+}
 
 /**
  * @brief Function: Crypto_Check_Anti_Replay_Verify_Pointers

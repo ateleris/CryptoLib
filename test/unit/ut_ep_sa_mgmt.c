@@ -32,7 +32,7 @@ UTEST(EP_SA_MGMT, SA_6_REKEY_133)
     int      buffer_REKEY_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -121,7 +121,7 @@ UTEST(EP_SA_MGMT, SA_START_6)
         buffer_START_MAX_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -221,7 +221,7 @@ UTEST(EP_SA_MGMT, SA_4_READ_ARSN)
     int      buffer_READ_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -311,7 +311,7 @@ UTEST(EP_SA_MGMT, SA_6_SET_ARSNW)
     int      buffer_SET_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -371,7 +371,7 @@ UTEST(EP_SA_MGMT, SA_6_SET_ARSN)
     int      buffer_SET_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -447,7 +447,7 @@ UTEST(EP_SA_MGMT, SA_6_STATUS)
     int      buffer_STATUS_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -528,7 +528,7 @@ UTEST(EP_SA_MGMT, SA_STOP_6)
     int      buffer_STOP_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -597,7 +597,7 @@ UTEST(EP_SA_MGMT, SA_EXPIRE_6)
     int      buffer_EXPIRE_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;
@@ -651,7 +651,7 @@ UTEST(EP_SA_MGMT, SA_STOP_SELF)
     int      buffer_STOP_len = 0;
 
     // Setup Processed Frame For Decryption
-    TC_t tc_nist_processed_frame;
+    TC_t tc_nist_processed_frame = {0};
 
     // Expose/setup SAs for testing
     SecurityAssociation_t *test_association;

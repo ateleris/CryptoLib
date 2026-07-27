@@ -646,6 +646,36 @@ int32_t Crypto_TM_Do_Encrypt_Handle_Increment(uint8_t sa_service_type, SecurityA
 }
 
 /**
+ * @brief Function: Crypto_TM_Write_FSR_OCF
+ * Build the transmit-side Frame Security Report OCF (CCSDS 355.0-B-2 Section 4.4) into pTfBuffer.
+ * The report's status flags are 0 because the transmit side has no received-frame error state to
+ * report in this setup; lspi/snval reflect the current SA.
+ * @param pTfBuffer: uint8_t*
+ * @param ocf_loc: uint16_t   byte offset of the 4-byte OCF (immediately after the MAC)
+ * @param sa_ptr: SecurityAssociation_t*
+ **/
+static void Crypto_TM_Write_FSR_OCF(uint8_t *pTfBuffer, uint16_t ocf_loc, SecurityAssociation_t *sa_ptr)
+{
+    Telemetry_Frame_Ocf_Fsr_t fsr;
+    fsr.cwt   = 1;           // Control Word Type = 1 (report, not CLCW)
+    fsr.fvn   = 0x4;         // FSR Version Number = 100b
+    fsr.af    = 0;
+    fsr.bsnf  = 0;
+    fsr.bmacf = 0;
+    fsr.bsaf  = 0;
+    fsr.lspi  = sa_ptr->spi; // Last SPI used
+    fsr.snval = (sa_ptr->arsn_len > 0)  ? sa_ptr->arsn[sa_ptr->arsn_len - 1]
+                : (sa_ptr->iv_len > 0)  ? sa_ptr->iv[sa_ptr->iv_len - 1]
+                                        : 0; // sequence-number LSB
+
+    pTfBuffer[ocf_loc + 0] =
+        (fsr.cwt << 7) | (fsr.fvn << 4) | (fsr.af << 3) | (fsr.bsnf << 2) | (fsr.bmacf << 1) | fsr.bsaf;
+    pTfBuffer[ocf_loc + 1] = (fsr.lspi & 0xFF00) >> 8;
+    pTfBuffer[ocf_loc + 2] = (fsr.lspi & 0x00FF);
+    pTfBuffer[ocf_loc + 3] = fsr.snval;
+}
+
+/**
  * @brief Function: Crypto_TM_Do_Encrypt
  * Parent function for performing TM Encryption
  * @param sa_service_type: uint8_t
@@ -709,7 +739,11 @@ int32_t Crypto_TM_Do_Encrypt(uint8_t sa_service_type, SecurityAssociation_t *sa_
         }
 #endif
 
-        // TODO OCF - ? Here, elsewhere?
+        // OCF comes immediately after the MAC (CCSDS 355.0-B-2 Section 4.4)
+        if (tm_current_managed_parameters_struct.has_ocf == TM_HAS_OCF)
+        {
+            Crypto_TM_Write_FSR_OCF(pTfBuffer, idx + sa_ptr->stmacf_len, sa_ptr);
+        }
 
         /**
          * End Authentication / Encryption

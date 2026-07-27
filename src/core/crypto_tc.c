@@ -1968,6 +1968,7 @@ int32_t Crypto_TC_ProcessSecurity_Cam(uint8_t *ingest, int *len_ingest, TC_t *tc
         return status;
     }
 
+
     // Lookup-retrieve managed parameters for frame via gvcid:
     status = Crypto_Get_TC_Managed_Parameters_For_Gvcid(
         tc_sdls_processed_frame->tc_header.tfvn, tc_sdls_processed_frame->tc_header.scid,
