@@ -260,9 +260,10 @@ typedef struct
 typedef struct _TCGvcidManagedParameters_t TCGvcidManagedParameters_t;
 struct _TCGvcidManagedParameters_t
 {
-    uint8_t              tfvn : 4;  // Transfer Frame Version Number
-    uint16_t             scid : 10; // SpacecraftID
-    uint8_t              vcid : 6;  // Virtual Channel ID
+    // same datatype for whole 20-bit group: "GCC < 4.4 warning" removed
+    uint32_t             tfvn : 4;  // Transfer Frame Version Number
+    uint32_t             scid : 10; // SpacecraftID
+    uint32_t             vcid : 6;  // Virtual Channel ID
     FecfPresent          has_fecf;
     TcSegmentHdrsPresent has_segmentation_hdr;
     uint16_t             max_frame_size; // Maximum TC/TM Frame Length with headers
@@ -286,9 +287,10 @@ struct _TMGvcidManagedParameters_t
 typedef struct _AOSGvcidManagedParameters_t AOSGvcidManagedParameters_t;
 struct _AOSGvcidManagedParameters_t
 {
-    uint8_t              tfvn : 2; // Transfer Frame Version Number
-    uint8_t              scid : 8; // SpacecraftID
-    uint8_t              vcid : 6; // Virtual Channel ID
+    // same datatype for whole 16-bit group: "GCC < 4.4 warning" removed
+    uint16_t             tfvn : 2; // Transfer Frame Version Number
+    uint16_t             scid : 8; // SpacecraftID
+    uint16_t             vcid : 6; // Virtual Channel ID
     FecfPresent          has_fecf;
     AosFhecPresent       aos_has_fhec;
     AosInsertZonePresent aos_has_iz;
