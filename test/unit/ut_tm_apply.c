@@ -2466,17 +2466,15 @@ UTEST(TM_APPLY, TM_APPLY_Secondary_Hdr_One_Too_Big)
 
 UTEST(TM_APPLY_SECURITY, NOMINAL_TM_ENC_DEC)
 {
-     // Setup & Initialize CryptoLib
+    // Setup & Initialize CryptoLib
     Crypto_Config_CryptoLib(KEY_TYPE_INTERNAL, MC_TYPE_INTERNAL, SA_TYPE_INMEMORY, CRYPTOGRAPHY_TYPE_LIBGCRYPT,
-                            IV_INTERNAL, CRYPTO_TC_CREATE_FECF_TRUE, TC_PROCESS_SDLS_PDUS_TRUE, TC_HAS_PUS_HDR,
-                            TC_IGNORE_SA_STATE_FALSE, TC_IGNORE_ANTI_REPLAY_FALSE, TC_UNIQUE_SA_PER_MAP_ID_FALSE,
-                            TC_CHECK_FECF_TRUE, 0x3F, SA_INCREMENT_NONTRANSMITTED_IV_TRUE);
+                            IV_INTERNAL);
+    Crypto_Config_TM(CRYPTO_TM_CREATE_FECF_TRUE, TM_IGNORE_ANTI_REPLAY_FALSE, TM_CHECK_FECF_FALSE, 0x3F,
+                     SA_INCREMENT_NONTRANSMITTED_IV_TRUE);
 
-    GvcidManagedParameters_t params = {
-        0, 0x0003, 4, TM_NO_FECF, AOS_FHEC_NA, AOS_IZ_NA, 0, TM_SEGMENT_HDRS_NA, 40, TC_OCF_NA, 1
-    };
-    Crypto_Config_Add_Gvcid_Managed_Parameters(params);
-    
+    TMGvcidManagedParameters_t params = {0, 0x0003, 4, TM_NO_FECF, 40, TM_NO_OCF, 1};
+    Crypto_Config_Add_TM_Gvcid_Managed_Parameters(params);
+
     int status = Crypto_Init();
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
 
@@ -2503,17 +2501,20 @@ UTEST(TM_APPLY_SECURITY, NOMINAL_TM_ENC_DEC)
     status = Crypto_TM_ApplySecurity(frame, frameLength);
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
 
+    // reset init vec for decryption
+    memset(testSA->iv, 0x00, 12);
 
-    uint8_t *ptr_processed_frame = NULL;
-    uint16_t processed_tm_len;
-    status = Crypto_TM_ProcessSecurity(frame, frameLength, &ptr_processed_frame, &processed_tm_len);
+    TM_t *processed_frame = malloc(sizeof(uint8_t) * TM_SIZE);
+    memset(processed_frame, 0, sizeof(uint8_t) * TM_SIZE);
+    uint16_t processed_tm_len = 0;
+
+    status = Crypto_TM_ProcessSecurity(frame, frameLength, processed_frame, &processed_tm_len);
     ASSERT_EQ(CRYPTO_LIB_SUCCESS, status);
 
-    int cpm = memcmp(frame, ptr_processed_frame, sizeof(frameLength));
+    int cpm = memcmp(processed_frame->tm_pdu, payload, sizeof(payload));
     ASSERT_EQ(cpm, 0);
 
-    free(ptr_processed_frame);
-
+    free(processed_frame);
 }
 
 UTEST_MAIN();
